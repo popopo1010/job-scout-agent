@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.feedback.audio_manager import AudioManager, AudioStatus
 from src.feedback.audio_feedback_engine import AudioFeedbackEngine
+from src.feedback.audio_filename_parser import AudioFilenameParser
 from src.common.slack_notifier import SlackNotifier
 
 
@@ -58,8 +59,35 @@ def auto_import_audio_files(audio_manager: AudioManager) -> int:
         if file_path.suffix.lower() not in AudioManager.SUPPORTED_FORMATS:
             continue
         
-        # ファイル名から情報を抽出
+        # ファイル名から情報を抽出（既存の形式）
         info = extract_info_from_filename(file_path.name)
+        
+        # 既存形式でない場合、自動リネームを試みる
+        if not info:
+            print(f"📝 ファイル名を自動変換中: {file_path.name}")
+            
+            try:
+                # 自動リネームして情報を抽出
+                new_path, date, ca_id, meeting_id = AudioFilenameParser.smart_rename(
+                    source_path=file_path,
+                    target_dir=pending_dir,  # 同じフォルダ内でリネーム
+                )
+                
+                # ファイル名を変更
+                if new_path != file_path:
+                    if new_path.exists():
+                        print(f"⚠️  既に同名ファイルが存在します: {new_path.name}")
+                        continue
+                    
+                    file_path.rename(new_path)
+                    print(f"   → リネーム完了: {new_path.name}")
+                    file_path = new_path
+                
+                info = (date, ca_id, meeting_id)
+            except Exception as e:
+                print(f"⚠️  ファイル名の自動変換に失敗しました（スキップ）: {file_path.name} - {e}")
+                continue
+        
         if not info:
             print(f"⚠️  ファイル名の形式が正しくありません（スキップ）: {file_path.name}")
             continue
@@ -80,7 +108,7 @@ def auto_import_audio_files(audio_manager: AudioManager) -> int:
                 meeting_id=meeting_id,
                 force=False,
             )
-            print(f"✅ 音声ファイルを登録: {file_path.name}")
+            print(f"✅ 音声ファイルを登録: {file_path.name} (CA: {ca_id}, 日付: {date})")
             registered_count += 1
         except Exception as e:
             print(f"❌ 登録失敗: {file_path.name} - {e}")
