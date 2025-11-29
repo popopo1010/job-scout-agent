@@ -38,7 +38,7 @@ def main() -> None:
 
     # 設定
     keyword = "電気工事士"
-    max_results = 5000  # 最大取得件数（各ソース）- 全件取得を目指す
+    max_results = 10000  # 最大取得件数（各ソース）- 全件取得を目指す
     output_dir = project_root / "data" / "exports" / "scraped"
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,9 +47,9 @@ def main() -> None:
 
     # スクレイピングオプション
     scraping_options = PlaywrightScrapingOptions(
-        max_pages=50,  # 最大50ページ
+        max_pages=1000,  # 最大1000ページ（全件取得を目指す）
         delay=2.0,  # 2秒間隔
-        timeout=30000.0,  # 30秒
+        timeout=60000.0,  # 60秒（タイムアウトを延長）
         headless=True,  # ヘッドレスモード
     )
 

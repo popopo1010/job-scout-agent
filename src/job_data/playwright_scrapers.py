@@ -208,71 +208,90 @@ class PlaywrightIndeedScraper:
                             break
                         next_button = None
 
-                if not next_button:
-                    # URLを直接変更して次のページに移動（まずこれを試す）
-                    start = (page_num) * 10
-                    next_url = f"{url}&start={start}"
-                    print(f"  次のページURLに直接移動: {next_url}")
-                    try:
-                        page.goto(next_url, wait_until="networkidle", timeout=int(self.options.timeout))
-                        time.sleep(5)
-                        
-                        # Cloudflareの検証ページか確認
-                        current_html = page.content()
-                        if "Just a moment" in current_html or "Cloudflare" in current_html:
-                            print("  Cloudflare検証を待機中...")
-                            time.sleep(10)
-                            page.reload(wait_until="networkidle", timeout=int(self.options.timeout))
-                            time.sleep(5)
-                            current_html = page.content()
-                        
-                        # 同じページか確認
-                        if len(current_html) == len(html) and current_html == html:
-                            print("  同じページが表示されました。終了します。")
-                            break
-                        # 求人が見つかるか確認
-                        current_soup = BeautifulSoup(current_html, "lxml")
-                        test_cards = current_soup.find_all("a", {"data-jk": True})
-                        if not test_cards:
-                            print("  次のページに求人がありませんでした。終了します。")
-                            break
-                        continue
-                    except Exception as e:
-                        print(f"  URL移動エラー: {e}")
-                        # 「もっと見る」ボタンを探す
-                        more_button = page.query_selector("button[data-testid*='more'], a[data-testid*='more']")
-                        if more_button:
-                            more_button.click()
-                            time.sleep(3)
-                            continue
-                        print("  次のページに移動できませんでした。終了します。")
-                        break
-
-                # 次のページボタンをクリック
+                # 次のページに移動（URLを直接変更する方法を優先）
+                start = page_num * 10
+                next_url = f"{url}&start={start}"
+                
+                # URLにstartパラメータが既にある場合は置き換え
+                if "&start=" in next_url or "?start=" in next_url:
+                    import re
+                    next_url = re.sub(r"[&?]start=\d+", f"&start={start}", next_url)
+                elif "?" in next_url:
+                    next_url = f"{next_url}&start={start}"
+                else:
+                    next_url = f"{next_url}?start={start}"
+                
+                print(f"  次のページURLに直接移動: start={start}")
                 try:
-                    # ボタンをクリックする前にURLを直接変更する方法も試す
-                    start = (page_num) * 10
-                    next_url = f"{url}&start={start}"
-                    print(f"  次のページURLに直接移動: {next_url}")
-                    page.goto(next_url, wait_until="networkidle", timeout=int(self.options.timeout))
-                    time.sleep(5)
+                    page.goto(next_url, wait_until="domcontentloaded", timeout=int(self.options.timeout))
+                    time.sleep(3)
                     
                     # Cloudflareの検証ページか確認
                     current_html = page.content()
                     if "Just a moment" in current_html or "Cloudflare" in current_html:
                         print("  Cloudflare検証を待機中...")
-                        time.sleep(10)
-                        page.reload(wait_until="networkidle", timeout=int(self.options.timeout))
-                        time.sleep(5)
+                        for wait_sec in range(60):  # 最大60秒待つ
+                            time.sleep(1)
+                            current_html = page.content()
+                            if "Just a moment" not in current_html and "Cloudflare" not in current_html:
+                                print("  Cloudflare検証が完了しました")
+                                break
+                        else:
+                            print("  Cloudflare検証がタイムアウトしました。ページを再読み込みします...")
+                            page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
+                            time.sleep(5)
+                    
+                    # ページが完全に読み込まれるまで待つ
+                    try:
+                        page.wait_for_load_state("networkidle", timeout=30000)
+                    except:
+                        pass
+                    time.sleep(3)
+                    
+                    # 求人が見つかるか確認（複数回試行）
+                    test_cards = []
+                    for retry in range(10):  # 10回までリトライ
+                        time.sleep(2)
+                        current_html = page.content()
+                        current_soup = BeautifulSoup(current_html, "lxml")
+                        test_cards = current_soup.find_all("a", {"data-jk": True})
+                        if test_cards:
+                            print(f"  次のページで {len(test_cards)}件の求人カードを発見")
+                            break
+                        if retry < 9:
+                            print(f"    求人検索リトライ {retry + 1}/10...")
+                            # ページをスクロールしてコンテンツを読み込む
+                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                            time.sleep(1)
+                    
+                    if not test_cards:
+                        print("  次のページに求人がありませんでした。終了します。")
+                        break
+                    
+                    # 同じページか確認（取得した求人数で判断）
+                    if len(test_cards) == 0:
+                        print("  求人が見つかりませんでした。終了します。")
+                        break
+                        
                 except Exception as e:
                     print(f"  URL移動エラー: {e}")
                     # ボタンクリックを試す
-                    try:
-                        next_button.click()
-                        time.sleep(self.options.delay + 3)
-                    except Exception as e2:
-                        print(f"  ボタンクリックエラー: {e2}")
-                        break
+                    if next_button:
+                        try:
+                            next_button.click()
+                            time.sleep(self.options.delay + 2)
+                        except Exception as e2:
+                            print(f"  ボタンクリックエラー: {e2}")
+                            break
+                    else:
+                        # 「もっと見る」ボタンを探す
+                        more_button = page.query_selector("button[data-testid*='more'], a[data-testid*='more']")
+                        if more_button:
+                            more_button.click()
+                            time.sleep(3)
+                        else:
+                            print("  次のページに移動できませんでした。終了します。")
+                            break
 
         except Exception as e:
             print(f"エラー: {e}")
@@ -764,49 +783,87 @@ class PlaywrightRikunabiNextScraper:
 
                 # 求人カードを取得（複数のセレクタを試す）
                 # Rikunabi Nextの実際のHTML構造に合わせてセレクタを調整
-                # まず、/job/で始まるリンクを探す
-                job_links = soup.find_all("a", href=re.compile(r"/job/"))
-                print(f"  /job/で始まるリンク数: {len(job_links)}")
-                if job_links:
-                    # 最初の3つのリンクのhrefを表示
-                    for i, link in enumerate(job_links[:3]):
-                        print(f"    リンク[{i+1}]: {link.get('href', 'N/A')}")
-                    print(f"  求人リンク数: {len(job_links)}")
-                    # リンクの親要素をカードとして扱う（より上位の親を探す）
-                    job_cards = []
-                    seen_links = set()
-                    for link in job_links:
-                        href = link.get("href", "")
-                        if href in seen_links:
-                            continue
-                        seen_links.add(href)
-                        
-                        # 親要素を階層的に探す（最大15階層）
-                        parent = link.parent
-                        depth = 0
-                        best_parent = None
-                        while parent and depth < 15:
-                            if parent.name in ["div", "article", "li", "section"]:
-                                parent_text = parent.get_text(strip=True)
-                                # 求人カードらしい要素を探す（タイトル、会社名、給与を含む）
-                                if (
-                                    len(parent_text) > 50 and
-                                    len(parent_text) < 2000 and  # 長すぎるものは除外
-                                    ("年俸" in parent_text or "月給" in parent_text or "万円" in parent_text) and
-                                    ("すべての条件" not in parent_text) and
-                                    ("関連度順" not in parent_text) and
-                                    ("新着順" not in parent_text) and
-                                    ("気になる年収" not in parent_text)
-                                ):
-                                    best_parent = parent
-                            parent = parent.parent
-                            depth += 1
-                        
-                        if best_parent and best_parent not in job_cards:
-                            job_cards.append(best_parent)
+                job_cards = []
+                
+                # 方法1: 求人カードを直接探す
+                job_cards = soup.find_all("div", class_=re.compile(r"rnn-jobCard|jobCard"))
+                if not job_cards:
+                    job_cards = soup.find_all("article", class_=re.compile(r"rnn-jobCard|jobCard"))
+                if not job_cards:
+                    job_cards = soup.find_all("li", class_=re.compile(r"rnn-jobCard|jobCard"))
+                
+                # 方法2: ページ内のテキストから求人数を確認
+                page_text = soup.get_text()
+                if "件" in page_text:
+                    match = re.search(r"(\d+)件", page_text)
+                    if match:
+                        total_count = int(match.group(1))
+                        print(f"  ページに表示されている求人数: {total_count}件")
+                
+                # 方法3: Playwrightで直接要素を取得（JavaScriptで読み込まれた後）
+                if not job_cards:
+                    try:
+                        # Playwrightのセレクタで直接取得
+                        playwright_cards = page.query_selector_all("div[class*='jobCard'], article[class*='jobCard'], li[class*='jobCard']")
+                        if playwright_cards:
+                            print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見")
+                            # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
+                            for pw_card in playwright_cards[:20]:  # 最初の20件だけ
+                                card_html = pw_card.inner_html()
+                                card_soup = BeautifulSoup(card_html, "lxml")
+                                job_cards.append(card_soup)
+                    except Exception as e:
+                        print(f"  Playwright取得エラー: {e}")
+                
+                # 方法4: /job/で始まるリンクを探す
+                if not job_cards:
+                    job_links = soup.find_all("a", href=re.compile(r"/job/"))
+                    print(f"  /job/で始まるリンク数: {len(job_links)}")
                     
-                    if job_cards:
-                        print(f"  求人カード数: {len(job_cards)}")
+                    if job_links:
+                        # 最初の3つのリンクのhrefを表示
+                        for i, link in enumerate(job_links[:3]):
+                            print(f"    リンク[{i+1}]: {link.get('href', 'N/A')}")
+                        print(f"  求人リンク数: {len(job_links)}")
+                        # リンクの親要素をカードとして扱う（より上位の親を探す）
+                        temp_cards = []
+                        seen_links = set()
+                        for link in job_links:
+                            href = link.get("href", "")
+                            if href in seen_links:
+                                continue
+                            seen_links.add(href)
+                            
+                            # 親要素を階層的に探す（最大15階層）
+                            parent = link.parent
+                            depth = 0
+                            best_parent = None
+                            while parent and depth < 15:
+                                if parent.name in ["div", "article", "li", "section"]:
+                                    parent_text = parent.get_text(strip=True)
+                                    # 求人カードらしい要素を探す（タイトル、会社名、給与を含む）
+                                    if (
+                                        len(parent_text) > 50 and
+                                        len(parent_text) < 2000 and  # 長すぎるものは除外
+                                        ("年俸" in parent_text or "月給" in parent_text or "万円" in parent_text) and
+                                        ("すべての条件" not in parent_text) and
+                                        ("関連度順" not in parent_text) and
+                                        ("新着順" not in parent_text) and
+                                        ("気になる年収" not in parent_text)
+                                    ):
+                                        best_parent = parent
+                                parent = parent.parent
+                                depth += 1
+                            
+                            if best_parent and best_parent not in temp_cards:
+                                temp_cards.append(best_parent)
+                        
+                        if temp_cards:
+                            job_cards = temp_cards
+                            print(f"  求人カード数: {len(job_cards)}")
+                
+                if not job_cards:
+                    job_cards = []
 
                 if not job_cards:
                     # デバッグ: ページの内容を確認
