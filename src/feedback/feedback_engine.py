@@ -8,6 +8,7 @@ from typing import List, Optional
 from .models import Feedback
 from .transcript_loader import TranscriptLoader
 from .feedback_generator import FeedbackGenerator
+from .feedback_history import FeedbackHistoryManager
 
 
 class FeedbackEngine:
@@ -18,16 +19,19 @@ class FeedbackEngine:
         transcripts_dir: Optional[Path] = None,
         criteria_path: Optional[Path] = None,
         use_ai: bool = False,
+        history_file: Optional[Path] = None,
     ) -> None:
         """
         Args:
             transcripts_dir: 書き起こしファイルのディレクトリ
             criteria_path: PSS/ADS評価基準ファイルのパス
             use_ai: Claude AIを使用するか（デフォルト: False）
+            history_file: フィードバック履歴ファイルのパス
         """
         transcripts_dir = transcripts_dir or Path("data/transcripts/pending")
         self.loader = TranscriptLoader(pending_dir=transcripts_dir)
         self.generator = FeedbackGenerator(criteria_path=criteria_path, use_ai=use_ai)
+        self.history_manager = FeedbackHistoryManager(history_file=history_file)
         self.feedbacks: List[Feedback] = []
 
     def process_all_pending(self) -> List[Feedback]:
@@ -44,6 +48,20 @@ class FeedbackEngine:
         """単一ファイルを処理"""
         transcript = self.loader.load_transcript(file_path)
         feedback = self.generator.generate_feedback(transcript)
+        
+        # 過去のフィードバック履歴を参照して繰り返し改善点を検出
+        feedback_id = f"{feedback.transcript.date}_{feedback.transcript.ca_id}_{feedback.transcript.meeting_id}"
+        repeated = self.history_manager.find_repeated_improvements(
+            current_improvement_points=feedback.improvement_points,
+            ca_id=feedback.transcript.ca_id,
+            exclude_feedback_id=feedback_id,
+            days=90,
+        )
+        feedback.repeated_improvements = repeated
+        
+        # 履歴に追加
+        self.history_manager.add_feedback(feedback)
+        
         self.feedbacks.append(feedback)
         return feedback
 

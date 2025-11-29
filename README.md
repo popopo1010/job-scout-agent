@@ -146,6 +146,7 @@ mypy src/
 | ドキュメント | 説明 |
 |-------------|------|
 | **[📊 プロジェクトオーバービュー（HTML）](docs/project-overview-complete.html)** | **視覚的なプロジェクト全体の可視化** ⭐ |
+| **[💼 エグゼクティブサマリー（投資家向け）](strategy/EXECUTIVE_SUMMARY.md)** | **投資判断に必要な情報を1ページにまとめたサマリー** ⭐ |
 | **[📋 事業戦略一覧](strategy/README.md)** | **3つの事業戦略の概要** ⭐ |
 | **[⚡ 電気工事士事業戦略](strategy/electrical-engineering/README.md)** | **電気工事士人材紹介事業の戦略** ⭐ |
 | **[🔧 電気施工管理事業戦略](strategy/electrical-construction-management/README.md)** | **電気工事施工管理人材紹介事業の戦略** ⭐ |

@@ -4,6 +4,7 @@ from .audio_feedback_engine import AudioFeedbackEngine
 from .audio_manager import AudioFile, AudioManager, AudioStatus
 from .feedback_engine import FeedbackEngine
 from .feedback_generator import FeedbackGenerator
+from .feedback_history import FeedbackHistoryManager, FeedbackHistoryEntry
 from .models import (
     Transcript,
     PSSEvaluation,
@@ -28,4 +29,6 @@ __all__ = [
     "TranscriptLoader",
     "FeedbackGenerator",
     "FeedbackEngine",
+    "FeedbackHistoryManager",
+    "FeedbackHistoryEntry",
 ]

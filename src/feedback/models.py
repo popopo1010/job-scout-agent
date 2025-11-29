@@ -170,6 +170,7 @@ class Feedback:
     specific_advice: str = ""
     next_goals: str = ""
     created_at: datetime = field(default_factory=datetime.now)
+    repeated_improvements: list[dict] = field(default_factory=list)  # 繰り返されている改善点
 
     @property
     def overall_score(self) -> float:
@@ -262,8 +263,30 @@ class Feedback:
         for i, point in enumerate(self.improvement_points, 1):
             marker = importance_markers[min(i - 1, len(importance_markers) - 1)]
             lines.append(f"{marker} {point}")
-            if i == len(self.improvement_points):
-                lines.append("   期待展開率8%を実現するためには、これらは必須です。次回は絶対に改善してください。")
+            
+            # 繰り返されている改善点かチェック
+            for repeated in self.repeated_improvements:
+                if repeated["improvement_point"] == point:
+                    count = repeated["count"]
+                    last_date = repeated["last_feedback_date"]
+                    lines.append("")
+                    lines.append(f"   ⚠️ *【重要】この改善点は過去{count}回指摘されています。*")
+                    lines.append(f"   最後に指摘したのは {last_date} でした。")
+                    lines.append("   同じことを繰り返さないためには、なぜこの問題が起こり続けているのか、")
+                    lines.append("   根本的な原因を考える必要があります。")
+                    lines.append("")
+                    lines.append("   考えられる原因：")
+                    lines.append("   • 改善方法が具体的でなかった？")
+                    lines.append("   • 改善の優先順位が低かった？")
+                    lines.append("   • 習慣化するまで時間がかかっている？")
+                    lines.append("")
+                    lines.append("   次回までに、この問題を解決するための具体的な行動計画を立て、")
+                    lines.append("   実行してください。同じ指摘を繰り返すことは、成長を妨げます。")
+                    lines.append("")
+                    break
+        
+        if self.improvement_points:
+            lines.append("期待展開率8%を実現するためには、これらは必須です。次回は絶対に改善してください。")
 
         lines.extend(
             [
@@ -350,8 +373,33 @@ class Feedback:
         for i, point in enumerate(self.improvement_points, 1):
             marker = importance_markers[min(i - 1, len(importance_markers) - 1)]
             lines.append(f"  {marker} {point}")
-            if i == len(self.improvement_points):
-                lines.append("  期待展開率8%を実現するためには、これらは必須です。次回は絶対に改善してください。")
+            
+            # 繰り返されている改善点かチェック
+            for repeated in self.repeated_improvements:
+                if repeated["improvement_point"] == point:
+                    count = repeated["count"]
+                    last_date = repeated["last_feedback_date"]
+                    lines.append("")
+                    lines.append(f"  ⚠️ 【重要】この改善点は過去{count}回指摘されています。")
+                    lines.append(f"  最後に指摘したのは {last_date} でした。")
+                    lines.append("  同じことを繰り返さないためには、なぜこの問題が起こり続けているのか、")
+                    lines.append("  根本的な原因を考える必要があります。")
+                    lines.append("")
+                    lines.append("  考えられる原因：")
+                    lines.append("  • 改善方法が具体的でなかった？")
+                    lines.append("  • 改善の優先順位が低かった？")
+                    lines.append("  • 習慣化するまで時間がかかっている？")
+                    lines.append("")
+                    lines.append("  次回までに、この問題を解決するための具体的な行動計画を立て、")
+                    lines.append("  実行してください。同じ指摘を繰り返すことは、成長を妨げます。")
+                    lines.append("")
+                    break
+        
+        if self.improvement_points and not any(
+            any(repeated["improvement_point"] == point for repeated in self.repeated_improvements)
+            for point in self.improvement_points
+        ):
+            lines.append("期待展開率8%を実現するためには、これらは必須です。次回は絶対に改善してください。")
 
         lines.extend(
             [
