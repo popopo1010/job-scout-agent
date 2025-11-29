@@ -145,6 +145,7 @@ mypy src/
 
 | ドキュメント | 説明 |
 |-------------|------|
+| **[📊 プロジェクトオーバービュー（HTML）](docs/project-overview-complete.html)** | **視覚的なプロジェクト全体の可視化** ⭐ |
 | [使用定義書（仕様定義書）](spec/00-specification.md) | Missionを含むプロジェクト全体の仕様 |
 | [クイックスタート](spec/00-quickstart.md) | 実装開始のためのガイド |
 | [要件定義](spec/01-requirements.md) | 詳細な要件と仕様 |
@@ -155,9 +156,16 @@ mypy src/
 | [デプロイ手順](spec/06-deployment.md) | 環境構築・デプロイ |
 | [運用ガイド](spec/07-operations.md) | 日常運用手順 |
 | [リポジトリ構造](spec/08-repository-structure.md) | プロジェクト構造 |
-| [音声データFB要件定義](spec/09-audio-feedback-requirements.md) | 音声データフィードバックシステム要件 |
-| [音声FB使用ガイド](docs/audio-feedback-guide.md) | 音声データフィードバックシステム使用ガイド |
-| [音声FBクイックスタート](docs/audio-quickstart.md) | 音声データフィードバックシステムクイックスタート |
+| [音声データFB要件定義](spec/09-audio-feedback-requirements.md) | 音声データフィードバックシステム要件（電気工事士） |
+| [音声FB使用ガイド](docs/audio-feedback-guide.md) | 音声データフィードバックシステム使用ガイド（電気工事士） |
+| [音声FBクイックスタート](docs/audio-quickstart.md) | 音声データフィードバックシステムクイックスタート（電気工事士） |
+| [電気施工管理FB要件定義](spec/10-electrical-construction-management-requirements.md) | 電気工事施工管理人材紹介システム要件 |
+| [電気施工管理FB使用ガイド](docs/electrical-construction-management-guide.md) | 電気工事施工管理人材紹介システム使用ガイド |
+| [電気施工管理FBクイックスタート](docs/electrical-construction-management-quickstart.md) | 電気工事施工管理人材紹介システムクイックスタート |
+| [施工管理FB要件定義](spec/11-construction-management-requirements.md) | 施工管理人材紹介システム要件 |
+| [施工管理FB使用ガイド](docs/construction-management-guide.md) | 施工管理人材紹介システム使用ガイド |
+| [施工管理FBクイックスタート](docs/construction-management-quickstart.md) | 施工管理人材紹介システムクイックスタート |
+| [CAマニュアル](docs/ca-manual.md) | CA運営マニュアル |
 
 ## マーケットサイズ
 
