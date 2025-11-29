@@ -198,4 +198,4 @@ python3 -c "from src.feedback import AudioFeedbackEngine; engine = AudioFeedback
 ---
 
 これで、フォルダにファイルを置くだけで、すべて自動処理されます！🎉
-
+ファイルをおいたときに、
