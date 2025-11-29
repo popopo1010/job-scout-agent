@@ -19,7 +19,11 @@ class FeedbackHistoryEntry:
     date: str
     meeting_id: str
     improvement_points: List[str]
+    good_points: List[str]
     overall_score: float
+    overall_rating: str  # "excellent", "good", "needs_improvement", "requires_coaching"
+    pss_scores: Dict[str, int]  # {"opening": 3, "need_identification": 2, ...}
+    ads_scores: Dict[str, int]  # {"adaptability": 3, "rapport_building": 2, ...}
     feedback_id: str  # ユニークID
     created_at: str
 
@@ -34,7 +38,21 @@ class FeedbackHistoryEntry:
             date=feedback.transcript.date,
             meeting_id=feedback.transcript.meeting_id,
             improvement_points=feedback.improvement_points,
+            good_points=feedback.good_points,
             overall_score=feedback.overall_score,
+            overall_rating=feedback.overall_rating.value,
+            pss_scores={
+                "opening": feedback.pss.opening.score,
+                "need_identification": feedback.pss.need_identification.score,
+                "presentation": feedback.pss.presentation.score,
+                "handling_objections": feedback.pss.handling_objections.score,
+                "closing": feedback.pss.closing.score,
+            },
+            ads_scores={
+                "adaptability": feedback.ads.adaptability.score,
+                "rapport_building": feedback.ads.rapport_building.score,
+                "value_delivery": feedback.ads.value_delivery.score,
+            },
             feedback_id=feedback_id,
             created_at=feedback.created_at.isoformat(),
         )
@@ -58,9 +76,29 @@ class FeedbackHistoryManager:
         if self.history_file.exists():
             try:
                 data = json.loads(self.history_file.read_text(encoding="utf-8"))
-                self._history = [
-                    FeedbackHistoryEntry(**entry) for entry in data.get("feedbacks", [])
-                ]
+                entries = []
+                for entry_data in data.get("feedbacks", []):
+                    # 後方互換性: 古い形式のデータに対応
+                    if "good_points" not in entry_data:
+                        entry_data["good_points"] = []
+                    if "overall_rating" not in entry_data:
+                        # スコアから評価を推定
+                        score = entry_data.get("overall_score", 0.0)
+                        if score >= 3.5:
+                            entry_data["overall_rating"] = "excellent"
+                        elif score >= 2.5:
+                            entry_data["overall_rating"] = "good"
+                        elif score >= 1.5:
+                            entry_data["overall_rating"] = "needs_improvement"
+                        else:
+                            entry_data["overall_rating"] = "requires_coaching"
+                    if "pss_scores" not in entry_data:
+                        entry_data["pss_scores"] = {}
+                    if "ads_scores" not in entry_data:
+                        entry_data["ads_scores"] = {}
+                    
+                    entries.append(FeedbackHistoryEntry(**entry_data))
+                self._history = entries
             except Exception as e:
                 print(f"Warning: Failed to load feedback history: {e}")
                 self._history = []

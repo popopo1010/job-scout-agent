@@ -32,16 +32,68 @@ data/
 
 ## 使い方
 
-### 1. 音声ファイルのアップロード
+### 🚀 簡単な方法: 自動処理（推奨）
 
-#### 方法A: ファイル名から自動抽出（推奨）
+**音声ファイルをフォルダに置くだけ！** 自動的にインポート・分析が始まります。
 
-ファイル名を以下の形式にする：
+#### ステップ1: 音声ファイルを配置
+
+ファイル名を以下の形式にして、`data/audio/pending/` フォルダに配置：
+
 ```
 {YYYY-MM-DD}_{CA_ID}_{会議識別子}.{拡張子}
 ```
 
 例:
+- `2025-01-15_CA001_client-call-001.m4a`
+- `2025-11-28_FUKUYAMA_test-slack-001.m4a`
+
+#### ステップ2: 自動処理を実行（定期実行も可能）
+
+```bash
+# 一度だけ実行
+python3 scripts/auto_process_audio.py
+
+# AIを使用する場合
+python3 scripts/auto_process_audio.py --use-ai
+```
+
+**自動処理の内容:**
+1. ✅ `data/audio/pending/` 内の新しい音声ファイルを自動登録
+2. ✅ `data/audio/transcripts/pending/` 内の書き起こしファイルを自動検出・紐付け
+3. ✅ 紐付け完了したファイルを自動的にフィードバック生成
+4. ✅ Slack通知も自動送信
+
+#### ステップ3: 書き起こしファイルを配置
+
+ZoomやNottaで書き起こしを実施後、書き起こしファイル（.txt）を以下のフォルダに配置：
+
+```
+data/audio/transcripts/pending/
+```
+
+ファイル名は音声ファイルと同じ形式にしてください：
+```
+{YYYY-MM-DD}_{CA_ID}_{会議識別子}.txt
+```
+
+#### 定期実行の設定（オプション）
+
+5分ごとに自動チェックする場合：
+
+```bash
+# crontab -e
+*/5 * * * * cd /Users/ikeobook15/Downloads/job-scout-agent && /usr/bin/python3 scripts/auto_process_audio.py >> logs/auto_process.log 2>&1
+```
+
+これで、フォルダにファイルを置くだけで、すべて自動処理されます！
+
+---
+
+### 📋 従来の手動方法
+
+#### 方法A: ファイル名から自動抽出
+
 ```bash
 python scripts/upload_audio.py "2025-01-15_CA001_client-call-001.m4a"
 ```
@@ -55,14 +107,7 @@ python scripts/upload_audio.py audio.m4a \
   --meeting-id client-call-001
 ```
 
-### 2. ZoomやNottaで書き起こしを実施
-
-- Zoom: 録音後に「書き起こしを表示」機能を使用
-- Notta: 音声ファイルをアップロードして書き起こしを実施
-
-書き起こしファイル（.txt）をダウンロードします。
-
-### 3. 書き起こしファイルと紐付け
+#### 書き起こしファイルと紐付け
 
 ```bash
 python scripts/link_transcript.py \
@@ -72,16 +117,10 @@ python scripts/link_transcript.py \
   transcript.txt
 ```
 
-### 4. フィードバック生成とSlack通知
+#### フィードバック生成とSlack通知
 
 ```bash
 python scripts/run_audio_feedback.py
-```
-
-または、AIを使用する場合：
-
-```bash
-python scripts/run_audio_feedback.py --use-ai
 ```
 
 **Slack通知について:**

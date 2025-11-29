@@ -105,7 +105,17 @@ class WeeklyReportGenerator:
         
         for entry in week_feedbacks:
             scores.append(entry.overall_score)
+            rating_counts[entry.overall_rating] += 1
             improvement_points_all.extend(entry.improvement_points)
+            good_points_all.extend(entry.good_points)
+            
+            # PSS/ADSスコアを集計
+            if hasattr(entry, 'pss_scores') and entry.pss_scores:
+                for key, score in entry.pss_scores.items():
+                    pss_scores[key].append(score)
+            if hasattr(entry, 'ads_scores') and entry.ads_scores:
+                for key, score in entry.ads_scores.items():
+                    ads_scores[key].append(score)
         
         # 改善点の頻度を計算
         improvement_frequency = defaultdict(int)
@@ -116,6 +126,12 @@ class WeeklyReportGenerator:
                 clean_point = clean_point.replace(marker, "").strip()
             improvement_frequency[clean_point] += 1
         
+        # 良かった点の頻度を計算
+        good_points_frequency = defaultdict(int)
+        for point in good_points_all:
+            clean_point = point.split("。")[0] if "。" in point else point[:30]  # 先頭部分をキーに
+            good_points_frequency[clean_point] += 1
+        
         # トップ改善点を取得
         top_improvements = sorted(
             improvement_frequency.items(),
@@ -123,9 +139,41 @@ class WeeklyReportGenerator:
             reverse=True
         )[:3]
         
-        # 平均スコアから評価分布を推定（実際のフィードバックから取得できないため）
-        # ここでは簡易的に計算
+        # 繰り返し改善点を検出
+        repeated_improvements_list = []
+        for point, count in top_improvements:
+            repeated = self.history_manager.find_repeated_improvements(
+                [point],
+                ca_id=ca_id,
+                days=90,
+            )
+            if repeated:
+                repeated_improvements_list.extend(repeated)
+        
+        # 評価分布を日本語ラベルに変換
+        rating_labels = {
+            "excellent": "優秀",
+            "good": "良好",
+            "needs_improvement": "要改善",
+            "requires_coaching": "要指導",
+        }
+        rating_dist = {
+            rating_labels.get(rating, rating): count
+            for rating, count in rating_counts.items()
+        }
+        
+        # 平均スコア
         average_score = sum(scores) / len(scores) if scores else 0.0
+        
+        # PSS/ADSの平均
+        pss_avgs = {
+            key: sum(score_list) / len(score_list) if score_list else 0.0
+            for key, score_list in pss_scores.items()
+        }
+        ads_avgs = {
+            key: sum(score_list) / len(score_list) if score_list else 0.0
+            for key, score_list in ads_scores.items()
+        }
         
         # CA名を取得
         ca_name = self.ca_mapping.get_ca_name(ca_id) or ca_id
@@ -138,13 +186,13 @@ class WeeklyReportGenerator:
             feedback_count=len(week_feedbacks),
             average_score=average_score,
             scores=scores,
-            rating_distribution={},  # 実際のデータから計算する必要がある
+            rating_distribution=rating_dist,
             improvement_points_frequency=dict(improvement_frequency),
-            repeated_improvements=[],  # 後で計算
+            repeated_improvements=repeated_improvements_list,
             top_improvement_points=top_improvements,
-            pss_averages={},
-            ads_averages={},
-            good_points_summary={},
+            pss_averages=pss_avgs,
+            ads_averages=ads_avgs,
+            good_points_summary=dict(good_points_frequency),
         )
 
     def generate_weekly_report_message(
@@ -181,6 +229,13 @@ class WeeklyReportGenerator:
         
         lines.append("")
         
+        # 評価分布
+        if summary.rating_distribution:
+            lines.append("*■ 総合評価の分布*")
+            for rating, count in summary.rating_distribution.items():
+                lines.append(f"- {rating}: {count}件")
+            lines.append("")
+        
         # トップ改善点
         if summary.top_improvement_points:
             lines.append("*■ 今週最も多く指摘された改善点*")
@@ -189,9 +244,22 @@ class WeeklyReportGenerator:
                 # 繰り返し改善点かチェック
                 for repeated in summary.repeated_improvements:
                     if point in repeated.get("improvement_point", ""):
-                        lines.append(f"   → 過去も{repeated['count']}回指摘されています。根本的な改善が必要です。")
+                        lines.append(f"   ⚠️ 過去も{repeated['count']}回指摘されています。根本的な改善が必要です。")
             
             lines.append("")
+        
+        # 良かった点
+        if summary.good_points_summary:
+            top_good_points = sorted(
+                summary.good_points_summary.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:3]
+            if top_good_points:
+                lines.append("*■ 今週の良かった点*")
+                for point, count in top_good_points:
+                    lines.append(f"- {point}（{count}件で評価）")
+                lines.append("")
         
         # 成長傾向
         if previous_week_summary:
