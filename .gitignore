@@ -54,6 +54,18 @@ output/
 logs/
 *.log
 
+# Audio files (音声ファイルは通常大容量のため除外)
+data/audio/pending/*.mp3
+data/audio/pending/*.m4a
+data/audio/pending/*.wav
+data/audio/pending/*.webm
+data/audio/processed/*.mp3
+data/audio/processed/*.m4a
+data/audio/processed/*.wav
+data/audio/processed/*.webm
+!data/audio/pending/.gitkeep
+!data/audio/processed/.gitkeep
+
 # macOS
 .DS_Store
 .DS_Store?
