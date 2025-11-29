@@ -9,6 +9,8 @@
 ```
 strategy/
 ├── README.md                          # このファイル
+├── CHECKLIST.md                       # 定期チェックリスト
+├── MONITORING_RESOURCES.md            # 監視リソース一覧
 ├── 01-mission-vision.md               # Mission/Vision
 ├── 02-pest-analysis.md                # PEST分析（外部環境分析）
 ├── 03-competitor-analysis.md          # 競合分析・差別化要因
@@ -50,6 +52,19 @@ strategy/
 - 外部環境の変化 → `02-pest-analysis.md`
 - リスクの発生・変化 → `11-risk-management.md`
 - 組織変更 → `09-organization.md`
+
+## 🔍 自動チェック
+
+事業戦略の更新状況を自動チェックするスクリプトが利用可能です：
+
+```bash
+# 事業戦略の更新チェックを実行
+python scripts/check_strategy_updates.py
+```
+
+詳細は以下を参照：
+- [定期チェックリスト](CHECKLIST.md)
+- [監視リソース一覧](MONITORING_RESOURCES.md)
 
 ## 📝 更新時の注意事項
 

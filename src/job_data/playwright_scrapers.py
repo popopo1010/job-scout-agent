@@ -1365,7 +1365,7 @@ class PlaywrightRikunabiNextScraper:
 class PlaywrightDenkikoujiComScraper:
     """Playwrightを使った電気工事.comスクレイパー"""
 
-    BASE_URL = "https://denkikouji.com"
+    BASE_URL = "https://denkikouji.net"  # 実際のURLに修正
 
     def __init__(self, options: Optional[PlaywrightScrapingOptions] = None) -> None:
         self.options = options or PlaywrightScrapingOptions()
@@ -1428,9 +1428,16 @@ class PlaywrightDenkikoujiComScraper:
         page = self.context.new_page()
 
         try:
-            # 検索URLを構築
+            # 検索URLを構築（実際のサイト構造に合わせて調整）
             from urllib.parse import quote
-            search_url = f"{self.BASE_URL}/job/search?keyword={quote(keyword)}"
+            # 複数のURLパターンを試す
+            search_urls = [
+                f"{self.BASE_URL}/job/search?keyword={quote(keyword)}",
+                f"{self.BASE_URL}/search?keyword={quote(keyword)}",
+                f"{self.BASE_URL}/jobs?keyword={quote(keyword)}",
+                f"{self.BASE_URL}/?keyword={quote(keyword)}",
+            ]
+            search_url = search_urls[0]  # 最初のパターンから試す
             if area:
                 search_url += f"&area={quote(area)}"
 

@@ -146,7 +146,8 @@ mypy src/
 | ドキュメント | 説明 |
 |-------------|------|
 | **[📊 プロジェクトオーバービュー（HTML）](docs/project-overview-complete.html)** | **視覚的なプロジェクト全体の可視化** ⭐ |
-| [使用定義書（仕様定義書）](spec/00-specification.md) | Missionを含むプロジェクト全体の仕様 |
+| **[📋 事業戦略](strategy/README.md)** | **Mission、Vision、経営計画、市場分析など** ⭐ |
+| [使用定義書（仕様定義書）](spec/00-specification.md) | システム実装の仕様（事業戦略は分離済み） |
 | [クイックスタート](spec/00-quickstart.md) | 実装開始のためのガイド |
 | [要件定義](spec/01-requirements.md) | 詳細な要件と仕様 |
 | [ユースケース](spec/02-use-cases.md) | 利用シナリオ |
@@ -175,7 +176,7 @@ mypy src/
 - **2040年**: 約540億円/年（+80.0%）
 - **2050年**: 約660億円/年（+119.3%）
 
-詳細は [使用定義書（仕様定義書）](spec/00-specification.md) の「マーケットサイズ分析」セクションを参照してください。
+詳細は [事業戦略 - マーケットサイズ分析](strategy/10-market-analysis.md) を参照してください。
 
 ## USP（独自の売り）
 
@@ -189,7 +190,7 @@ mypy src/
 4. **電気工事士専門×データ分析の融合** - 専門性とデータ分析の両立
 5. **リアルタイム可視化とDaily改善** - 日次でのデータ更新とアクション反映
 
-詳細は [使用定義書（仕様定義書）](spec/00-specification.md) の「競合分析・差別化要因」セクションを参照してください。
+詳細は [事業戦略 - 競合分析](strategy/03-competitor-analysis.md) を参照してください。
 
 ## 外部環境分析（PEST分析）
 
@@ -200,7 +201,7 @@ mypy src/
 - **Social（社会）**: 平均年齢40代中盤から後半、働き方改革、CBT方式導入、技術継承の課題など
 - **Technological（技術）**: BIM、ICT施工、CCUS、スマートグリッド、新技術・新工法など
 
-詳細は [使用定義書（仕様定義書）](spec/00-specification.md) の「PEST分析」セクションを参照してください。
+詳細は [事業戦略 - PEST分析](strategy/02-pest-analysis.md) を参照してください。
 
 ## ライセンス
 
