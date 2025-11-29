@@ -1,0 +1,5 @@
+segment_id,segment_name,has_qualification,age_condition,description,sample_size,success_count,conversion_rate,priority
+A,資格あり若手,true,40歳以下,電気工事士資格保有かつ40歳以下。即戦力として期待できる若手層,120,90,0.75,1
+B,資格ありベテラン,true,40歳超,電気工事士資格保有かつ40歳超。経験豊富な即戦力,85,51,0.60,2
+C,資格なし若手,false,40歳以下,電気工事士資格なしの40歳以下。育成対象として可能性あり,60,24,0.40,3
+D,資格なしシニア,false,40歳超,電気工事士資格なしの40歳超。展開難易度が高い,40,8,0.20,4

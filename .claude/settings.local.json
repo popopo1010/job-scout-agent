@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open:*)",
+      "Bash(python scripts/demo.py:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)",
+      "Bash(python demo.py:*)",
+      "WebSearch",
+      "WebFetch(domain:next.rikunabi.com)",
+      "Bash(python scripts/demo_scraping.py:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

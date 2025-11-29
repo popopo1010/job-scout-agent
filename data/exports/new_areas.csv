@@ -1,0 +1,6 @@
+company_name,existing_prefectures,new_prefecture,title,yearly_min,yearly_max,source,url
+東京電気工事株式会社,"東京都,神奈川県,埼玉県",千葉県,【新】電気工事士募集,380.0,500.0,indeed,https://example.com/job/3
+関西電設株式会社,"大阪府,兵庫県,京都府",奈良県,【新】電気工事スタッフ急募,312.0,408.0,indeed,https://example.com/job/5
+中部エンジニアリング株式会社,"愛知県,静岡県",三重県,【新】電気工事スタッフ,336.0,432.0,hellowork,https://example.com/job/10
+九州電工株式会社,"福岡県,熊本県",鹿児島県,【新】電気設備工事,288.0,384.0,rikunabi,https://example.com/job/12
+東北電気工業株式会社,"宮城県,岩手県",秋田県,【新】電気設備スタッフ,312.0,396.0,mynavi,https://example.com/job/19

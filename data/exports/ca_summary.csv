@@ -1,0 +1,6 @@
+ca_id,name,team,target_leads,current_leads,segment_a_count,segment_b_count,segment_c_count,segment_d_count,target_expected_conversions,current_expected_conversions,achievement_rate,avg_conversion_rate,status
+CA001,山田一郎,東日本チーム,15,6,5,1,0,0,7.5,4.35,0.58,0.72,below_target
+CA002,佐藤二郎,東日本チーム,15,4,3,1,0,0,7.5,2.85,0.38,0.71,at_risk
+CA003,鈴木三郎,西日本チーム,15,6,3,0,2,1,7.5,3.25,0.43,0.54,at_risk
+CA004,高橋四郎,中部チーム,15,6,1,2,2,1,7.5,2.95,0.39,0.49,at_risk
+CA005,田中五郎,その他エリア,10,3,0,1,1,1,5.0,1.2,0.24,0.4,at_risk

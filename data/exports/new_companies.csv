@@ -1,0 +1,10 @@
+company_name,prefecture,city,title,qualification,yearly_min,yearly_max,source,url
+新日本電気株式会社,東京都,新宿区,電気工事技術者,第一種電気工事士,450.0,580.0,hellowork,https://example.com/job/6
+新日本電気株式会社,神奈川県,川崎市,電気設備工事,第二種電気工事士,384.0,480.0,hellowork,https://example.com/job/7
+日本電設サービス株式会社,大阪府,堺市,電気工事士,第一種電気工事士,400.0,520.0,hellowork,https://example.com/job/8
+南九州電設株式会社,宮崎県,宮崎市,電気工事士募集,第一種電気工事士,340.0,450.0,rikunabi,https://example.com/job/13
+四国電気工業株式会社,香川県,高松市,電気工事技術者,第一種電気工事士,372.0,480.0,rikunabi,https://example.com/job/14
+四国電気工業株式会社,愛媛県,松山市,電気設備スタッフ,第二種電気工事士,330.0,420.0,rikunabi,https://example.com/job/15
+北陸電設株式会社,石川県,金沢市,電気工事士,第一種電気工事士,360.0,470.0,mynavi,https://example.com/job/16
+北陸電設株式会社,富山県,富山市,電気設備工事,第二種電気工事士,312.0,408.0,mynavi,https://example.com/job/17
+山陰電気サービス株式会社,島根県,松江市,電気工事士募集,第一種電気工事士,350.0,450.0,mynavi,https://example.com/job/20

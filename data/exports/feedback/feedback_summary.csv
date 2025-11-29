@@ -1,0 +1,3 @@
+date,ca_id,ca_name,client_name,duration_min,overall_score,overall_rating,pss_opening,pss_need_identification,pss_presentation,pss_handling_objections,pss_closing,ads_adaptability,ads_rapport_building,ads_value_delivery,good_points,improvement_points
+2025-01-15,CA001,山田一郎,田中太郎,5,3.63,優秀（Excellent）,A,A,A,B,A,A,A,A,"丁寧な自己紹介と時間確認; ニーズの深掘り; 具体的な求人提案; 共感表現; 明確なクロージング","求人詳細説明の充実; キャリア方向性の深掘り"
+2025-01-16,CA002,佐藤二郎,鈴木花子,4,1.75,要改善（Needs Improvement）,D,C,D,D,D,C,D,D,"現状と転職理由の把握; 2社の求人紹介","オープニング改善; 否定的発言の排除; 求人情報の具体化; 信頼感のある対応; クロージング強化"

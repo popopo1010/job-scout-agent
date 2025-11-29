@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人材紹介事業 AIエージェントシステム - アーキテクチャ概要</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 50px;
+            font-size: 1.1rem;
+        }
+
+        /* 全体構成図 */
+        .overview-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            padding-left: 15px;
+            border-left: 4px solid #00d9ff;
+        }
+
+        /* 3システムカード */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .system-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .system-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .system-card.analytics::before { background: linear-gradient(90deg, #ff6b6b, #ffa502); }
+        .system-card.feedback::before { background: linear-gradient(90deg, #00d9ff, #0099ff); }
+        .system-card.jobdata::before { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+
+        .system-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .analytics .system-icon { background: linear-gradient(135deg, #ff6b6b, #ffa502); }
+        .feedback .system-icon { background: linear-gradient(135deg, #00d9ff, #0099ff); }
+        .jobdata .system-icon { background: linear-gradient(135deg, #00ff88, #00cc6a); }
+
+        .system-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .system-card .description {
+            color: #aaa;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.9rem;
+            color: #ccc;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .feature-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #00d9ff;
+        }
+
+        /* フロー図 */
+        .flow-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 20px 30px;
+            text-align: center;
+            min-width: 150px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .flow-box.input {
+            background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(255,165,2,0.2));
+            border-color: rgba(255,165,2,0.3);
+        }
+
+        .flow-box.process {
+            background: linear-gradient(135deg, rgba(0,217,255,0.2), rgba(0,153,255,0.2));
+            border-color: rgba(0,217,255,0.3);
+        }
+
+        .flow-box.output {
+            background: linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,204,106,0.2));
+            border-color: rgba(0,255,136,0.3);
+        }
+
+        .flow-box .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: #00d9ff;
+        }
+
+        .flow-arrow.down {
+            transform: rotate(90deg);
+        }
+
+        /* 技術スタック */
+        .tech-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .tech-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tech-item .icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .tech-item h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .tech-item p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* データフロー詳細 */
+        .detail-section {
+            margin-bottom: 40px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .detail-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .detail-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-card h3 .badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(0,217,255,0.2);
+            color: #00d9ff;
+        }
+
+        .flow-steps {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .flow-steps::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: linear-gradient(to bottom, #00d9ff, #00ff88);
+        }
+
+        .step {
+            position: relative;
+            padding: 15px 0;
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00d9ff;
+            border: 2px solid #1a1a2e;
+        }
+
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* 課題と解決 */
+        .problem-solution {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .ps-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .ps-header {
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .ps-header.analytics { background: linear-gradient(135deg, rgba(255,107,107,0.3), rgba(255,165,2,0.3)); }
+        .ps-header.feedback { background: linear-gradient(135deg, rgba(0,217,255,0.3), rgba(0,153,255,0.3)); }
+        .ps-header.jobdata { background: linear-gradient(135deg, rgba(0,255,136,0.3), rgba(0,204,106,0.3)); }
+
+        .ps-content {
+            padding: 25px;
+        }
+
+        .problem, .solution {
+            margin-bottom: 20px;
+        }
+
+        .problem h4, .solution h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .problem h4 { color: #ff6b6b; }
+        .solution h4 { color: #00ff88; }
+
+        .problem p, .solution p {
+            font-size: 0.9rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        /* ユーザーマッピング */
+        .user-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .user-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .user-card h4 {
+            margin-bottom: 10px;
+        }
+
+        .user-systems {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .user-systems span {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .user-systems span.analytics { background: rgba(255,107,107,0.3); }
+        .user-systems span.feedback { background: rgba(0,217,255,0.3); }
+        .user-systems span.jobdata { background: rgba(0,255,136,0.3); }
+
+        /* レスポンシブ */
+        @media (max-width: 1024px) {
+            .systems-grid, .detail-grid, .problem-solution {
+                grid-template-columns: 1fr;
+            }
+            .tech-grid, .user-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>人材紹介事業 AIエージェントシステム</h1>
+        <p class="subtitle">3つのサブシステムで業務効率化と意思決定支援を実現</p>
+
+        <!-- 3システム概要 -->
+        <section class="overview-section">
+            <h2 class="section-title">システム構成</h2>
+            <div class="systems-grid">
+                <div class="system-card analytics">
+                    <div class="system-icon">📊</div>
+                    <h3>経営分析基盤</h3>
+                    <p class="description">リードの期待展開率を4セグメントで自動分類し、意思決定を支援</p>
+                    <ul class="feature-list">
+                        <li>資格×年齢の4セグメント自動分類</li>
+                        <li>セグメント別期待展開率（A:75%, B:60%, C:40%, D:20%）</li>
+                        <li>適正保有件数の算出・リード振り分け</li>
+                        <li>CA別パフォーマンスダッシュボード</li>
+                    </ul>
+                </div>
+
+                <div class="system-card feedback">
+                    <div class="system-icon">🎯</div>
+                    <h3>フィードバックシステム</h3>
+                    <p class="description">営業通話を自動分析し、CAのスキル向上を支援</p>
+                    <ul class="feature-list">
+                        <li>書き起こしファイルの読み込み</li>
+                        <li>PSS/ADS基準でのAI分析</li>
+                        <li>フィードバック自動生成</li>
+                        <li>Slackへ自動配信</li>
+                    </ul>
+                </div>
+
+                <div class="system-card jobdata">
+                    <div class="system-icon">🔍</div>
+                    <h3>求人データ整備</h3>
+                    <p class="description">新規法人発見・既存法人の新規エリア求人を検出</p>
+                    <ul class="feature-list">
+                        <li>新規法人の発見（未保有法人の求人キャッチ）</li>
+                        <li>既存法人の新規エリア検出</li>
+                        <li>自社求人との比較・不足求人特定</li>
+                        <li>定期自動チェック・通知</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 課題と解決 -->
+        <section class="detail-section">
+            <h2 class="section-title">課題 → 解決</h2>
+            <div class="problem-solution">
+                <div class="ps-card">
+                    <div class="ps-header analytics">経営分析基盤</div>
+                    <div class="ps-content">
+                        <div class="problem">
+                            <h4>😓 現状の課題</h4>
+                            <p>エリア・年齢・資格を単独でしか分析できず、精度の高い期待展開率が算出できていない</p>
+                        </div>
+                        <div class="solution">
+                            <h4>✨ 解決後の状態</h4>
+                            <p>全セグメント掛け合わせで分析し、適正保有件数とパフォーマンス乖離を可視化</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ps-card">
+                    <div class="ps-header feedback">フィードバックシステム</div>
+                    <div class="ps-content">
+                        <div class="problem">
+                            <h4>😓 現状の課題</h4>
+                            <p>CAの営業通話を人力で確認・フィードバックするのに時間がかかりすぎている</p>
+                        </div>
+                        <div class="solution">
+                            <h4>✨ 解決後の状態</h4>
+                            <p>AIが自動で通話を分析し、PSS/ADSに基づくフィードバックをSlackで即時配信</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ps-card">
+                    <div class="ps-header jobdata">求人データ整備</div>
+                    <div class="ps-content">
+                        <div class="problem">
+                            <h4>😓 現状の課題</h4>
+                            <p>①未保有法人の求人を見落としている ②既存法人が新エリアで出している求人を把握できていない</p>
+                        </div>
+                        <div class="solution">
+                            <h4>✨ 解決後の状態</h4>
+                            <p>新規法人を自動発見、既存法人の新規エリアを検出、自社求人と比較して不足分を特定。定期チェックで通知</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- データフロー詳細 -->
+        <section class="detail-section">
+            <h2 class="section-title">データフロー</h2>
+            <div class="detail-grid">
+                <div class="detail-card">
+                    <h3>📊 経営分析基盤 <span class="badge">Analytics</span></h3>
+                    <div class="flow-steps">
+                        <div class="step">
+                            <div class="step-title">1. データ取り込み</div>
+                            <div class="step-desc">リードデータ（年齢、資格）、CA情報</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">2. セグメント自動判定</div>
+                            <div class="step-desc">資格有無×40歳で4分類（A/B/C/D）</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">3. 期待展開率付与</div>
+                            <div class="step-desc">セグメント別に自動設定（75%〜20%）</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">4. レポート生成</div>
+                            <div class="step-desc">CA別保有状況、振り分け提案</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>🎯 フィードバック <span class="badge">Feedback</span></h3>
+                    <div class="flow-steps">
+                        <div class="step">
+                            <div class="step-title">1. ファイル配置</div>
+                            <div class="step-desc">書き起こしファイルをpendingに配置</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">2. ファイル読込</div>
+                            <div class="step-desc">ファイル名からCA情報を抽出</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">3. AI分析</div>
+                            <div class="step-desc">Claude AIでPSS/ADS観点分析</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">4. Slack送信</div>
+                            <div class="step-desc">CAへフィードバック配信</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>🔍 求人データ整備 <span class="badge">JobData</span></h3>
+                    <div class="flow-steps">
+                        <div class="step">
+                            <div class="step-title">1. スクレイピング</div>
+                            <div class="step-desc">求人サイト巡回・データ収集</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">2. 法人マッチング</div>
+                            <div class="step-desc">新規法人 or 既存法人を判定</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">3. エリア/求人比較</div>
+                            <div class="step-desc">新規エリア・不足求人を検出</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-title">4. レポート・通知</div>
+                            <div class="step-desc">定期チェック結果をSlack通知</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ユーザーマッピング -->
+        <section class="user-section">
+            <h2 class="section-title">ユーザーと利用システム</h2>
+            <div class="user-grid">
+                <div class="user-card">
+                    <div class="user-avatar">👔</div>
+                    <h4>経営層</h4>
+                    <div class="user-systems">
+                        <span class="analytics">経営分析</span>
+                    </div>
+                </div>
+                <div class="user-card">
+                    <div class="user-avatar">👨‍💼</div>
+                    <h4>マネージャー</h4>
+                    <div class="user-systems">
+                        <span class="analytics">経営分析</span>
+                        <span class="feedback">FB</span>
+                    </div>
+                </div>
+                <div class="user-card">
+                    <div class="user-avatar">🧑‍💻</div>
+                    <h4>キャリアアドバイザー</h4>
+                    <div class="user-systems">
+                        <span class="feedback">FB</span>
+                    </div>
+                </div>
+                <div class="user-card">
+                    <div class="user-avatar">📋</div>
+                    <h4>営業企画</h4>
+                    <div class="user-systems">
+                        <span class="jobdata">求人データ</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技術スタック -->
+        <section class="tech-section">
+            <h2 class="section-title">技術スタック</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <div class="icon">🐍</div>
+                    <h4>Python 3.11+</h4>
+                    <p>メイン開発言語</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">🤖</div>
+                    <h4>Claude AI</h4>
+                    <p>分析・フィードバック生成</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">🗃️</div>
+                    <h4>SQLite/PostgreSQL</h4>
+                    <p>データベース</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">⏰</div>
+                    <h4>APScheduler</h4>
+                    <p>定期実行</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">💬</div>
+                    <h4>Slack API</h4>
+                    <p>通知・フィードバック配信</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">🔧</div>
+                    <h4>httpx</h4>
+                    <p>HTTP クライアント</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">📄</div>
+                    <h4>BeautifulSoup</h4>
+                    <p>HTMLパース</p>
+                </div>
+                <div class="tech-item">
+                    <div class="icon">🌐</div>
+                    <h4>Web Scraping</h4>
+                    <p>求人データ収集</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- フェーズ -->
+        <section class="overview-section">
+            <h2 class="section-title">実装フェーズ</h2>
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box input">
+                        <div class="label">Phase 1</div>
+                        <div>要件定義・設計</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-box process">
+                        <div class="label">Phase 2</div>
+                        <div>経営分析基盤</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-box process">
+                        <div class="label">Phase 3</div>
+                        <div>フィードバック</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-box process">
+                        <div class="label">Phase 4</div>
+                        <div>求人データ整備</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-box output">
+                        <div class="label">Phase 5</div>
+                        <div>統合・運用開始</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

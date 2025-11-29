@@ -1,0 +1,16 @@
+scraped_id,source,company_name,prefecture,city,title,qualification,salary_type,monthly_min,monthly_max,yearly_min,yearly_max,url,scraped_at
+RN001,rikunabi_next,有限会社片桐電気工事,東京都,新宿区,電気工事士,第二種電気工事士,yearly,,,360,450,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN002,rikunabi_next,三井物産フォーサイト株式会社,東京都,千代田区大手町,電気設備管理,第二種電気工事士,monthly,30,37.5,360,450,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN003,rikunabi_next,日本通信機工業株式会社,東京都,千代田区神田佐久間町,電気通信工事士,第二種電気工事士,monthly,33,48,396,576,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN004,rikunabi_next,オフィスコム株式会社,東京都,千代田区,オフィス電気設備工事,第二種電気工事士,monthly,30,50,360,600,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN005,rikunabi_next,株式会社翔栄電設,東京都,23区,電気工事士,第二種電気工事士,monthly,24,45,288,540,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN006,rikunabi_next,株式会社ダックビル,東京都,江東区木場,電気設備工事,第二種電気工事士,monthly,25,66.67,300,800,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN007,rikunabi_next,株式会社Ｙ２エナジーグループ,東京都,渋谷区幡ヶ谷,電気工事士,第二種電気工事士,monthly,25,100,300,1200,https://next.rikunabi.com/job_search/area-tokyo/kw/第二種電気工事士/,2025-11-29
+RN008,rikunabi_next,株式会社ライフスクエア,東京都,足立区東保木間,電気工事士,第一種電気工事士,monthly,35,45,420,540,https://next.rikunabi.com/job_search/kw/第一種電気工事士/,2025-11-29
+RN009,rikunabi_next,エス・ビー・エス株式会社,東京都,府中市,電気工事技術者,第一種電気工事士,monthly,40,,480,,https://next.rikunabi.com/job_search/kw/第一種電気工事士/,2025-11-29
+RN010,rikunabi_next,株式会社サンアルク,東京都,板橋区大山金井町,電気設備工事,第一種電気工事士,monthly,28,35,336,420,https://next.rikunabi.com/job_search/kw/第一種電気工事士/,2025-11-29
+RN011,rikunabi_next,ダイケイスクエア株式会社,東京都,北区王子,電気工事士,第2種電気工事士,monthly,24.5,70,294,840,https://next.rikunabi.com/job_search/kw/第2種電気工事士/,2025-11-29
+RN012,rikunabi_next,プライム・スター株式会社,東京都,港区赤坂,電気工事士,第二種電気工事士,monthly,35,50,420,600,https://next.rikunabi.com/job_search/kw/第二種電気工事士/,2025-11-29
+RN013,rikunabi_next,株式会社PREVENT JAPAN,東京都,墨田区石原,電気設備エンジニア,第二種電気工事士,yearly,,,500,800,https://next.rikunabi.com/job_search/kw/第二種電気工事士/,2025-11-29
+RN014,rikunabi_next,株式会社ブリッジスマイル,東京都,港区赤坂,電気工事士,第2種電気工事士,monthly,40,60,480,720,https://next.rikunabi.com/job_search/kw/第2種電気工事士/,2025-11-29
+RN015,rikunabi_next,株式会社野村総合研究所,東京都,千代田区大手町,電気設備管理,第二種電気工事士,monthly,40.5,89,486,1068,https://next.rikunabi.com/job_search/sal-over700/kw/第二種電気工事士/,2025-11-29

@@ -1,0 +1,6 @@
+ca_id,name,team,slack_user_id,target_leads,current_leads,segment_a_count,segment_b_count,segment_c_count,segment_d_count,target_expected_conversions,current_expected_conversions,achievement_rate,avg_conversion_rate,status
+CA001,山田一郎,東日本チーム,U0001YAMADA,15,6,5,1,0,0,4.50,4.35,0.97,0.73,on_track
+CA002,佐藤二郎,東日本チーム,U0002SATO,15,4,3,1,0,0,4.50,2.85,0.63,0.71,below_target
+CA003,鈴木三郎,西日本チーム,U0003SUZUKI,15,6,3,0,2,1,4.50,3.25,0.72,0.54,on_track
+CA004,高橋四郎,中部チーム,U0004TAKAHASHI,15,6,1,2,2,1,4.50,2.95,0.66,0.49,below_target
+CA005,田中五郎,その他エリア,U0005TANAKA,10,3,0,1,1,1,3.00,1.20,0.40,0.40,at_risk
