@@ -61,6 +61,7 @@ class ScrapedJob:
     salary: SalaryInfo
     url: str
     scraped_at: str
+    phone_number: Optional[str] = None  # 人事向け電話番号
 
     @property
     def yearly_salary_range(self) -> Tuple[Optional[float], Optional[float]]:

@@ -1,0 +1,4 @@
+scraped_id,source,company_name,prefecture,city,title,qualification,salary_type,monthly_min,monthly_max,yearly_min,yearly_max,phone_number,url,scraped_at
+ID001,demo,株式会社東京電気工事,東京都,千代田区,電気工事士,第一種電気工事士,monthly,30.0,50.0,360.0,600.0,,https://jp.indeed.com/viewjob?jk=abc123,2025-11-29
+RN001,demo,関西電設株式会社,大阪府,大阪市,電気工事士,第二種電気工事士,yearly,,,400.0,600.0,,https://next.rikunabi.com/job/xyz789,2025-11-29
+ID002,demo,中部エンジニアリング株式会社,愛知県,名古屋市,電気工事士,第一種電気工事士,monthly,35.0,55.0,420.0,660.0,,https://jp.indeed.com/viewjob?jk=def456,2025-11-29

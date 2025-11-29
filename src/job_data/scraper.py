@@ -128,6 +128,7 @@ class JobScraper:
             salary=salary,
             url=data.get("url", ""),
             scraped_at=data.get("scraped_at", datetime.now().strftime("%Y-%m-%d")),
+            phone_number=data.get("phone_number"),
         )
 
     def add_result(self, result: ScrapingResult) -> None:
@@ -159,6 +160,7 @@ class JobScraper:
                 "monthly_max": job.salary.monthly_max,
                 "yearly_min": yearly_range[0],
                 "yearly_max": yearly_range[1],
+                "phone_number": job.phone_number or "",
                 "url": job.url,
                 "scraped_at": job.scraped_at,
             })
