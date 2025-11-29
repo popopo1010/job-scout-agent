@@ -1,5 +1,9 @@
 """フィードバックシステムモジュール"""
 
+from .audio_feedback_engine import AudioFeedbackEngine
+from .audio_manager import AudioFile, AudioManager, AudioStatus
+from .feedback_engine import FeedbackEngine
+from .feedback_generator import FeedbackGenerator
 from .models import (
     Transcript,
     PSSEvaluation,
@@ -9,10 +13,12 @@ from .models import (
     OverallRating,
 )
 from .transcript_loader import TranscriptLoader
-from .feedback_generator import FeedbackGenerator
-from .feedback_engine import FeedbackEngine
 
 __all__ = [
+    "AudioFeedbackEngine",
+    "AudioFile",
+    "AudioManager",
+    "AudioStatus",
     "Transcript",
     "PSSEvaluation",
     "ADSEvaluation",

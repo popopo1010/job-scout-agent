@@ -156,6 +156,8 @@ mypy src/
 | [運用ガイド](spec/07-operations.md) | 日常運用手順 |
 | [リポジトリ構造](spec/08-repository-structure.md) | プロジェクト構造 |
 | [音声データFB要件定義](spec/09-audio-feedback-requirements.md) | 音声データフィードバックシステム要件 |
+| [音声FB使用ガイド](docs/audio-feedback-guide.md) | 音声データフィードバックシステム使用ガイド |
+| [音声FBクイックスタート](docs/audio-quickstart.md) | 音声データフィードバックシステムクイックスタート |
 
 ## マーケットサイズ
 

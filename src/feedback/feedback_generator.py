@@ -359,8 +359,8 @@ JSONのみを出力し、それ以外のテキストは含めないでくださ�
 """
 
         message = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2000,
+            model="claude-3-5-sonnet-20241022",  # 最新のClaude 3.5 Sonnetモデル
+            max_tokens=4000,  # より長いレスポンスに対応
             messages=[
                 {"role": "user", "content": prompt}
             ],

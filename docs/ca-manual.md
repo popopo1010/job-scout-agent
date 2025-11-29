@@ -308,7 +308,11 @@ https://www.linebiz.com/jp/service/line-official-account/
 
 ### CA運作用資料（ローカルファイル）
 
-- [PSS-テキスト.pdf](./references/ca-operations/PSS-テキスト.pdf) - Professional Selling Skills（プロフェッショナル・セリング・スキル）のテキスト
+- [PSS-テキスト.pdf](./references/ca-operations/PSS-テキスト.pdf) - PSS テキスト
+- [⑥KJA導入研修_CP職心得編.pptx](./references/ca-operations/⑥KJA導入研修_CP職心得編.pptx) - ⑥KJA導入研修 CP職心得編
+- [【KJA】応募意思獲得率向上.pptx](./references/ca-operations/【KJA】応募意思獲得率向上.pptx) - 【KJA】応募意思獲得率向上
+- [内定から入職までのご案内_v7_工藤.pptx](./references/ca-operations/内定から入職までのご案内_v7_工藤.pptx) - 内定から入職までのご案内 v7 工藤
+
 
 ### by エス・エム・エス
 
