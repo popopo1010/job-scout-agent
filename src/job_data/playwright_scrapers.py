@@ -1365,7 +1365,7 @@ class PlaywrightRikunabiNextScraper:
 class PlaywrightDenkikoujiComScraper:
     """Playwrightを使った電気工事.comスクレイパー"""
 
-    BASE_URL = "https://denkikouji.net"  # 実際のURLに修正
+    BASE_URL = "https://koujishi.com"  # 正しいURL
 
     def __init__(self, options: Optional[PlaywrightScrapingOptions] = None) -> None:
         self.options = options or PlaywrightScrapingOptions()
@@ -1428,16 +1428,11 @@ class PlaywrightDenkikoujiComScraper:
         page = self.context.new_page()
 
         try:
-            # 検索URLを構築（実際のサイト構造に合わせて調整）
+            # 検索URLを構築
             from urllib.parse import quote
-            # 複数のURLパターンを試す
-            search_urls = [
-                f"{self.BASE_URL}/job/search?keyword={quote(keyword)}",
-                f"{self.BASE_URL}/search?keyword={quote(keyword)}",
-                f"{self.BASE_URL}/jobs?keyword={quote(keyword)}",
-                f"{self.BASE_URL}/?keyword={quote(keyword)}",
-            ]
-            search_url = search_urls[0]  # 最初のパターンから試す
+            # koujishi.comの実際の検索URL構造を確認してから調整
+            # まずは一般的なパターンを試す
+            search_url = f"{self.BASE_URL}/search?keyword={quote(keyword)}"
             if area:
                 search_url += f"&area={quote(area)}"
 
@@ -1481,16 +1476,41 @@ class PlaywrightDenkikoujiComScraper:
                 # 求人カードを取得（複数のセレクタを試す）
                 job_cards = []
                 
-                # 方法1: 求人カードを直接探す
-                job_cards = soup.find_all("div", class_=re.compile(r"job-card|jobCard|job_item", re.I))
+                # 方法1: koujishi.comの実際の構造に合わせて探す
+                # ナビゲーション要素を除外して求人カードを探す
+                all_divs = soup.find_all("div", class_=re.compile(r"job|card|item|list", re.I))
+                job_cards = []
+                for div in all_divs:
+                    # ナビゲーション要素を除外
+                    div_text = div.get_text(strip=True)
+                    if any(exclude in div_text for exclude in ["閲覧履歴", "気になる", "会員登録", "ログイン", "お問い合わせ"]):
+                        continue
+                    # 求人らしい内容を含むか確認
+                    if any(keyword in div_text for keyword in ["電気", "工事", "給", "万円", "株式会社", "有限会社"]):
+                        job_cards.append(div)
+                
                 if not job_cards:
-                    job_cards = soup.find_all("article", class_=re.compile(r"job-card|jobCard|job_item", re.I))
-                if not job_cards:
-                    job_cards = soup.find_all("li", class_=re.compile(r"job-card|jobCard|job_item", re.I))
-                if not job_cards:
-                    job_cards = soup.find_all("div", {"data-job-id": True})
-                if not job_cards:
-                    job_cards = soup.find_all("a", href=re.compile(r"/job/|/detail/"))
+                    # リンクから親要素を探す（求人詳細ページへのリンク）
+                    job_links = soup.find_all("a", href=re.compile(r"/list/\d+|/job/\d+|/detail/\d+"))
+                    seen_parents = set()
+                    for link in job_links:
+                        href = link.get("href", "")
+                        # ナビゲーションリンクを除外
+                        if "view" in href.lower() or "history" in href.lower():
+                            continue
+                        parent = link.parent
+                        depth = 0
+                        while parent and depth < 5:
+                            if parent.name in ["div", "article", "li"]:
+                                parent_id = id(parent)
+                                if parent_id not in seen_parents:
+                                    parent_text = parent.get_text(strip=True)
+                                    if any(keyword in parent_text for keyword in ["電気", "工事", "給", "万円"]):
+                                        job_cards.append(parent)
+                                        seen_parents.add(parent_id)
+                                        break
+                            parent = parent.parent
+                            depth += 1
 
                 # 方法2: Playwrightで直接要素を取得
                 if not job_cards:
@@ -1596,15 +1616,32 @@ class PlaywrightDenkikoujiComScraper:
         return jobs
 
     def _parse_job_card_bs4(self, soup: BeautifulSoup, card: Any, keyword: str) -> Optional[Dict[str, Any]]:
-        """BeautifulSoupで求人カードをパース"""
+        """BeautifulSoupで求人カードをパース（koujishi.com用）"""
         try:
-            # タイトル
+            # タイトル（複数の方法で探す）
             title = ""
-            title_elem = card.find("h2") or card.find("h3") or card.find("a", class_=re.compile(r"title"))
+            title_elem = (
+                card.find("h2") or 
+                card.find("h3") or 
+                card.find("h4") or
+                card.find("a", class_=re.compile(r"title")) or
+                card.find("a", href=True)
+            )
             if title_elem:
                 title = title_elem.get_text(strip=True)
+                # リンクの場合はhrefからも取得を試みる
+                if not title and title_elem.name == "a":
+                    title = title_elem.get("title", "") or title_elem.get_text(strip=True)
 
+            # カード全体のテキストからタイトルを抽出
             if not title:
+                card_text = card.get_text(strip=True)
+                # 最初の行をタイトルとして使用
+                lines = [line.strip() for line in card_text.split("\n") if line.strip()]
+                if lines:
+                    title = lines[0][:100]  # 最初の100文字
+
+            if not title or len(title) < 3:
                 return None
 
             # URLとjob_id
@@ -1616,44 +1653,78 @@ class PlaywrightDenkikoujiComScraper:
                 if href:
                     if href.startswith("/"):
                         url = f"{self.BASE_URL}{href}"
+                    elif not href.startswith("http"):
+                        url = f"{self.BASE_URL}/{href}"
                     else:
                         url = href
                     # URLからjob_idを抽出
-                    match = re.search(r"/job/(\d+)|/detail/(\d+)", href)
+                    match = re.search(r"/job/(\d+)|/detail/(\d+)|/list/(\d+)|id=(\d+)", href)
                     if match:
-                        job_id = match.group(1) or match.group(2)
+                        job_id = match.group(1) or match.group(2) or match.group(3) or match.group(4)
 
-            # 会社名
+            # 会社名（複数の方法で探す）
             company_name = ""
-            company_elem = card.find("div", class_=re.compile(r"company")) or card.find("span", class_=re.compile(r"company"))
+            company_elem = (
+                card.find("div", class_=re.compile(r"company|企業|会社", re.I)) or 
+                card.find("span", class_=re.compile(r"company|企業|会社", re.I)) or
+                card.find("p", class_=re.compile(r"company|企業|会社", re.I))
+            )
             if company_elem:
                 company_name = company_elem.get_text(strip=True)
-            else:
-                # 親要素から探す
-                parent = card.parent
-                for depth in range(5):
-                    if not parent:
-                        break
-                    company_elem = parent.find("div", class_=re.compile(r"company")) or parent.find("span", class_=re.compile(r"company"))
-                    if company_elem:
-                        company_name = company_elem.get_text(strip=True)
-                        break
-                    parent = parent.parent
+            
+            # テキストから会社名を抽出（「株式会社」などのパターンを探す）
+            if not company_name:
+                card_text = card.get_text()
+                # 株式会社、有限会社などのパターンを探す
+                company_match = re.search(r"([株有合][式会社]*[^\s\n]{2,30})", card_text)
+                if company_match:
+                    company_name = company_match.group(1).strip()
 
-            # 場所
+            # 場所（複数の方法で探す）
             location = ""
-            location_elem = card.find("div", class_=re.compile(r"location|area")) or card.find("span", class_=re.compile(r"location|area"))
+            location_elem = (
+                card.find("div", class_=re.compile(r"location|area|場所|勤務地", re.I)) or 
+                card.find("span", class_=re.compile(r"location|area|場所|勤務地", re.I)) or
+                card.find("p", class_=re.compile(r"location|area|場所|勤務地", re.I))
+            )
             if location_elem:
                 location = location_elem.get_text(strip=True)
+            
+            # テキストから都道府県名を探す
+            if not location:
+                card_text = card.get_text()
+                prefectures = ["東京都", "大阪府", "京都府", "北海道", "神奈川県", "埼玉県", "千葉県", "愛知県", "福岡県"]
+                for pref in prefectures:
+                    if pref in card_text:
+                        location = pref
+                        break
 
-            # 給与
+            # 給与（複数の方法で探す）
             salary_text = ""
-            salary_elem = card.find("div", class_=re.compile(r"salary")) or card.find("span", class_=re.compile(r"salary"))
+            salary_elem = (
+                card.find("div", class_=re.compile(r"salary|給与|年収|月給", re.I)) or 
+                card.find("span", class_=re.compile(r"salary|給与|年収|月給", re.I)) or
+                card.find("p", class_=re.compile(r"salary|給与|年収|月給", re.I))
+            )
             if salary_elem:
                 salary_text = salary_elem.get_text(strip=True)
+            
+            # テキストから給与情報を抽出
+            if not salary_text:
+                card_text = card.get_text()
+                salary_match = re.search(r"(\d+[〜~-]?\d*万円?|\d+[〜~-]?\d*円)", card_text)
+                if salary_match:
+                    salary_text = salary_match.group(1)
 
-            if not company_name:
-                return None
+            if not company_name or len(company_name) < 2:
+                # 会社名がない場合はタイトルから推測
+                if "株式会社" in title or "有限会社" in title:
+                    company_match = re.search(r"([株有合][式会社]*[^\s\n]{2,30})", title)
+                    if company_match:
+                        company_name = company_match.group(1).strip()
+                
+                if not company_name or len(company_name) < 2:
+                    return None
 
             # 給与をパース
             salary_info = self._parse_salary(salary_text)

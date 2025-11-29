@@ -53,18 +53,30 @@ strategy/
 - リスクの発生・変化 → `11-risk-management.md`
 - 組織変更 → `09-organization.md`
 
-## 🔍 自動チェック
+## 🔍 自動チェック・監視
 
-事業戦略の更新状況を自動チェックするスクリプトが利用可能です：
+事業戦略の更新状況を自動チェックするスクリプトが利用可能です。
+
+### ✅ 週1回自動チェック（設定済み）
+
+毎週月曜日9時に自動実行されます：
 
 ```bash
-# 事業戦略の更新チェックを実行
+# 手動でチェックを実行（テスト用）
 python scripts/check_strategy_updates.py
+
+# 自動実行の状態確認
+launchctl list | grep strategy-check
 ```
 
-詳細は以下を参照：
-- [定期チェックリスト](CHECKLIST.md)
-- [監視リソース一覧](MONITORING_RESOURCES.md)
+詳細は [週1回自動チェックの設定状況](WEEKLY_CHECK_STATUS.md) を参照してください。
+
+### 関連ドキュメント
+
+- **[週1回自動チェックの設定状況](WEEKLY_CHECK_STATUS.md)** - 現在の設定状況と管理方法 ⭐
+- **[定期チェックリスト](CHECKLIST.md)** - 月次/四半期/年次のチェック項目
+- **[監視リソース一覧](MONITORING_RESOURCES.md)** - 市場データ、競合情報、法規制などのリソース
+- **[自動更新セットアップ](AUTO_UPDATE_SETUP.md)** - 自動化のセットアップ方法
 
 ## 📝 更新時の注意事項
 
