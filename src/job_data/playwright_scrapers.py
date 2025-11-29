@@ -45,7 +45,11 @@ class PlaywrightIndeedScraper:
         self.playwright = sync_playwright().start()
         self.browser = self.playwright.chromium.launch(
             headless=self.options.headless,
-            args=["--disable-blink-features=AutomationControlled"],
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
+            ],
         )
         self.context = self.browser.new_context(
             viewport={"width": 1920, "height": 1080},

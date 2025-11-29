@@ -48,9 +48,9 @@ def main() -> None:
     # スクレイピングオプション
     scraping_options = PlaywrightScrapingOptions(
         max_pages=1000,  # 最大1000ページ（全件取得を目指す）
-        delay=2.0,  # 2秒間隔
-        timeout=60000.0,  # 60秒（タイムアウトを延長）
-        headless=True,  # ヘッドレスモード
+        delay=3.0,  # 3秒間隔（Cloudflare検証を避けるため）
+        timeout=90000.0,  # 90秒（タイムアウトを延長）
+        headless=False,  # ヘッドレスモードを無効化（Cloudflare検証を避けるため）
     )
 
     # 1. Indeedからスクレイピング（Playwright使用）
