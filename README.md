@@ -139,6 +139,7 @@ mypy src/
 
 | ドキュメント | 説明 |
 |-------------|------|
+| [使用定義書（仕様定義書）](spec/00-specification.md) | Missionを含むプロジェクト全体の仕様 |
 | [クイックスタート](spec/00-quickstart.md) | 実装開始のためのガイド |
 | [要件定義](spec/01-requirements.md) | 詳細な要件と仕様 |
 | [ユースケース](spec/02-use-cases.md) | 利用シナリオ |
@@ -147,6 +148,7 @@ mypy src/
 | [実装ガイド](spec/05-implementation-guide.md) | コーディング規約等 |
 | [デプロイ手順](spec/06-deployment.md) | 環境構築・デプロイ |
 | [運用ガイド](spec/07-operations.md) | 日常運用手順 |
+| [リポジトリ構造](spec/08-repository-structure.md) | プロジェクト構造 |
 
 ## ライセンス
 

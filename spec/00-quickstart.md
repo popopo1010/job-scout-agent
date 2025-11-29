@@ -78,6 +78,7 @@ job-scout-agent/
 │   ├── feedback/             # フィードバックシステム
 │   └── job_data/             # 求人データ整備
 ├── spec/                     # 仕様書（このディレクトリ）
+│   ├── 00-specification.md  # 使用定義書（仕様定義書）- Mission含む
 │   ├── 00-quickstart.md      # ← 今ここ
 │   ├── 01-requirements.md    # 要件定義
 │   ├── 02-use-cases.md       # ユースケース
@@ -86,6 +87,7 @@ job-scout-agent/
 │   ├── 05-implementation-guide.md
 │   ├── 06-deployment.md
 │   ├── 07-operations.md
+│   ├── 08-repository-structure.md  # リポジトリ構造
 │   └── notes/                # 詳細設計メモ
 ├── tests/
 ├── config/
@@ -118,9 +120,10 @@ job-scout-agent/
 
 ## 次のステップ
 
-1. **要件確認**: [01-requirements.md](./01-requirements.md) で詳細要件を確認
-2. **ユースケース理解**: [02-use-cases.md](./02-use-cases.md) で具体的な利用シナリオを把握
-3. **タスク確認**: [04-tasks.md](./04-tasks.md) で現在のタスクを確認し、着手
+1. **Mission確認**: [00-specification.md](./00-specification.md) でプロジェクトの使命と全体像を確認
+2. **要件確認**: [01-requirements.md](./01-requirements.md) で詳細要件を確認
+3. **ユースケース理解**: [02-use-cases.md](./02-use-cases.md) で具体的な利用シナリオを把握
+4. **タスク確認**: [04-tasks.md](./04-tasks.md) で現在のタスクを確認し、着手
 
 ## 重要な決定事項
 
@@ -132,11 +135,13 @@ job-scout-agent/
 
 ## 関連ドキュメント
 
+- [使用定義書（仕様定義書）](./00-specification.md) - Missionを含むプロジェクト全体の仕様
 - [要件定義](./01-requirements.md)
 - [ユースケース](./02-use-cases.md)
 - [アーキテクチャ](./03-architecture.md)
 - [タスクバックログ](./04-tasks.md)
 - [実装ガイド](./05-implementation-guide.md)
+- [リポジトリ構造](./08-repository-structure.md)
 
 ---
 
