@@ -250,18 +250,44 @@ class PlaywrightIndeedScraper:
                     
                     # Cloudflareの検証ページか確認
                     current_html = page.content()
-                    if "Just a moment" in current_html or "Cloudflare" in current_html:
-                        print("  Cloudflare検証を待機中...")
-                        for wait_sec in range(60):  # 最大60秒待つ
-                            time.sleep(1)
-                            current_html = page.content()
-                            if "Just a moment" not in current_html and "Cloudflare" not in current_html:
-                                print("  Cloudflare検証が完了しました")
-                                break
+                    cloudflare_detected = (
+                        "Just a moment" in current_html or 
+                        "Cloudflare" in current_html or 
+                        "challenge" in current_html.lower() or
+                        "Ray ID" in current_html
+                    )
+                    
+                    if cloudflare_detected:
+                        print("  Cloudflare検証を検出。待機中...（最大120秒）")
+                        # より長い待機時間でCloudflare検証を通過
+                        for wait_sec in range(120):  # 最大120秒待つ
+                            time.sleep(2)
+                            try:
+                                # ページを再読み込みして検証を通過させる
+                                if wait_sec % 10 == 0:  # 10秒ごとに再読み込み
+                                    page.reload(wait_until="domcontentloaded", timeout=30000)
+                                current_html = page.content()
+                                cloudflare_detected = (
+                                    "Just a moment" in current_html or 
+                                    "Cloudflare" in current_html or 
+                                    "challenge" in current_html.lower() or
+                                    "Ray ID" in current_html
+                                )
+                                if not cloudflare_detected:
+                                    print(f"  Cloudflare検証が完了しました（{wait_sec * 2}秒後）")
+                                    time.sleep(5)  # 追加の待機
+                                    break
+                            except Exception as e:
+                                print(f"  再読み込みエラー: {e}")
+                                continue
                         else:
-                            print("  Cloudflare検証がタイムアウトしました。ページを再読み込みします...")
-                            page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
-                            time.sleep(5)
+                            print("  Cloudflare検証がタイムアウトしました。続行します...")
+                            # 最後の試行として再読み込み
+                            try:
+                                page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
+                                time.sleep(10)
+                            except:
+                                pass
                     
                     # ページが完全に読み込まれるまで待つ
                     try:
@@ -272,40 +298,48 @@ class PlaywrightIndeedScraper:
                     
                     # 求人が見つかるか確認（複数回試行）
                     test_cards = []
-                    for retry in range(15):  # 15回までリトライ
-                        time.sleep(3)
+                    max_retries = 20  # リトライ回数を増やす
+                    for retry in range(max_retries):
+                        time.sleep(4)  # 待機時間を延長
+                        
+                        # ページをスクロールしてコンテンツを読み込む
+                        try:
+                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                            time.sleep(1)
+                            page.evaluate("window.scrollTo(0, 0)")
+                            time.sleep(1)
+                        except:
+                            pass
+                        
                         current_html = page.content()
                         current_soup = BeautifulSoup(current_html, "lxml")
                         test_cards = current_soup.find_all("a", {"data-jk": True})
-                        if test_cards:
+                        
+                        if test_cards and len(test_cards) > 0:
                             print(f"  次のページで {len(test_cards)}件の求人カードを発見")
+                            consecutive_empty = 0
                             break
-                        if retry < 14:
-                            print(f"    求人検索リトライ {retry + 1}/15...")
-                            # ページをスクロールしてコンテンツを読み込む
-                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                            time.sleep(2)
+                        
+                        if retry < max_retries - 1:
+                            print(f"    求人検索リトライ {retry + 1}/{max_retries}...")
                             # ページを再読み込み
                             try:
                                 page.reload(wait_until="domcontentloaded", timeout=30000)
+                                time.sleep(3)
                             except:
                                 pass
                     
-                    if not test_cards:
+                    if not test_cards or len(test_cards) == 0:
                         print("  次のページに求人が見つかりませんでした。")
                         consecutive_empty += 1
-                        if consecutive_empty >= 3:  # 3回連続で見つからない場合のみ終了
+                        if consecutive_empty >= 5:  # 5回連続で見つからない場合のみ終了
                             print("  連続して求人が見つかりませんでした。終了します。")
                             break
                         # 次のページに進む（求人が見つからなくても続行）
+                        start += 10
                         continue
                     else:
                         consecutive_empty = 0
-                    
-                    # 同じページか確認（取得した求人数で判断）
-                    if len(test_cards) == 0:
-                        print("  求人が見つかりませんでした。終了します。")
-                        break
                         
                 except Exception as e:
                     print(f"  URL移動エラー: {e}")
@@ -803,7 +837,13 @@ class PlaywrightRikunabiNextScraper:
                     page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
                 except:
                     pass
-            time.sleep(3)
+            
+            # ページが完全に読み込まれるまで待つ
+            try:
+                page.wait_for_load_state("networkidle", timeout=30000)
+            except:
+                pass
+            time.sleep(5)  # JavaScriptで動的に読み込まれる要素を待つ
 
             page_num = 1
             consecutive_empty = 0
@@ -843,40 +883,49 @@ class PlaywrightRikunabiNextScraper:
                 # 方法3: Playwrightで直接要素を取得（JavaScriptで読み込まれた後）
                 if not job_cards:
                     try:
-                        # Playwrightのセレクタで直接取得
-                        playwright_cards = page.query_selector_all("div[class*='jobCard'], article[class*='jobCard'], li[class*='jobCard']")
-                        if playwright_cards:
-                            print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見")
-                            # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
-                            for pw_card in playwright_cards[:20]:  # 最初の20件だけ
-                                card_html = pw_card.inner_html()
-                                card_soup = BeautifulSoup(card_html, "lxml")
-                                job_cards.append(card_soup)
-                    except Exception as e:
-                        print(f"  Playwright取得エラー: {e}")
-                
-                # 方法4: Playwrightで直接要素を取得（JavaScriptで読み込まれた後）
-                if not job_cards:
-                    try:
-                        # ページが完全に読み込まれるまで待つ
-                        page.wait_for_load_state("networkidle", timeout=30000)
-                        time.sleep(3)
+                        # より長く待つ
+                        time.sleep(5)
                         
-                        # Playwrightのセレクタで直接取得
-                        playwright_cards = page.query_selector_all(
-                            "div[class*='jobCard'], article[class*='jobCard'], li[class*='jobCard'], "
-                            "div[class*='job-card'], a[href*='/job/']"
-                        )
-                        if playwright_cards:
-                            print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見")
-                            # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
-                            for pw_card in playwright_cards:
-                                try:
-                                    card_html = pw_card.inner_html()
-                                    card_soup = BeautifulSoup(card_html, "lxml")
-                                    job_cards.append(card_soup)
-                                except:
-                                    pass
+                        # ページをスクロールしてコンテンツを読み込む
+                        try:
+                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                            time.sleep(2)
+                            page.evaluate("window.scrollTo(0, 0)")
+                            time.sleep(2)
+                        except:
+                            pass
+                        
+                        # 複数のセレクタパターンを試す
+                        selectors = [
+                            "div[class*='jobCard']",
+                            "article[class*='jobCard']",
+                            "li[class*='jobCard']",
+                            "div[class*='job-card']",
+                            "a[href*='/job/']",
+                            "div[data-job-id]",
+                            "article[data-job-id]",
+                            "div[class*='rnn-jobCard']",
+                            "article[class*='rnn-jobCard']",
+                        ]
+                        
+                        for selector in selectors:
+                            try:
+                                playwright_cards = page.query_selector_all(selector)
+                                if playwright_cards and len(playwright_cards) > 0:
+                                    print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見（セレクタ: {selector}）")
+                                    # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
+                                    for pw_card in playwright_cards:
+                                        try:
+                                            card_html = pw_card.inner_html()
+                                            if card_html and len(card_html) > 50:  # 空でないことを確認
+                                                card_soup = BeautifulSoup(card_html, "lxml")
+                                                job_cards.append(card_soup)
+                                        except:
+                                            pass
+                                    if job_cards:
+                                        break
+                            except Exception as e:
+                                continue
                     except Exception as e:
                         print(f"  Playwright取得エラー: {e}")
                 
