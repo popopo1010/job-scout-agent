@@ -87,28 +87,31 @@ class PlaywrightIndeedScraper:
 
         jobs = []
         page = self.context.new_page()
+        seen_job_ids = set()  # 重複チェック用（全体）
 
         try:
             # 検索URLを構築
             from urllib.parse import quote
-            params = {
+            base_params = {
                 "q": keyword,
-                "l": location,
             }
-            url = f"{self.BASE_URL}/jobs?" + "&".join(f"{k}={quote(str(v))}" for k, v in params.items() if v)
+            if location:
+                base_params["l"] = location
+            
+            base_url = f"{self.BASE_URL}/jobs?" + "&".join(f"{k}={quote(str(v))}" for k, v in base_params.items())
 
-            print(f"Indeed: {url} を取得中...")
+            print(f"Indeed: {base_url} を取得中...")
 
-            # ページにアクセス
+            # 最初のページにアクセス
             try:
-                page.goto(url, wait_until="domcontentloaded", timeout=int(self.options.timeout * 2))
+                page.goto(base_url, wait_until="domcontentloaded", timeout=int(self.options.timeout))
             except Exception as e:
                 print(f"  ページ読み込みエラー: {e}")
                 try:
-                    page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout * 2))
+                    page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
                 except:
                     pass
-            time.sleep(8)  # ページの読み込みを待つ
+            time.sleep(5)  # ページの読み込みを待つ
             
             # Cloudflareの検証ページか確認
             page_content = page.content()
@@ -124,13 +127,12 @@ class PlaywrightIndeedScraper:
                 else:
                     print("  Cloudflare検証がタイムアウトしました。続行します...")
 
-            page_num = 0
+            start = 0
             consecutive_empty = 0  # 連続して求人が見つからない回数
-            seen_job_ids = set()  # 重複チェック用
 
-            while len(jobs) < max_results and page_num < self.options.max_pages:
-                page_num += 1
-                print(f"\n  ページ {page_num} を処理中...")
+            while len(jobs) < max_results and start < max_results:
+                page_num = (start // 10) + 1
+                print(f"\n  ページ {page_num} (start={start}) を処理中...")
 
                 # ページのHTMLを取得してBeautifulSoupでパース
                 html = page.content()
@@ -181,8 +183,8 @@ class PlaywrightIndeedScraper:
                         
                         jobs.append(job_data)
                         page_jobs_count += 1
-                        if len(jobs) <= 10 or page_jobs_count <= 3:  # 最初の10件または各ページの最初の3件を表示
-                            print(f"  ✓ [{len(jobs)}] {job_data.get('company_name', 'N/A')[:30]} - {job_data.get('title', 'N/A')[:40]}")
+                        if len(jobs) <= 20 or page_jobs_count <= 5:  # 最初の20件または各ページの最初の5件を表示
+                            print(f"  ✓ [{len(jobs)}] {job_data.get('company_name', 'N/A')[:25]} - {job_data.get('title', 'N/A')[:35]}")
 
                 print(f"  ページ {page_num}: {page_jobs_count}件取得 (累計: {len(jobs)}件)")
 
@@ -213,8 +215,10 @@ class PlaywrightIndeedScraper:
                         next_button = None
 
                 # 次のページに移動（URLを直接変更する方法を優先）
-                start = page_num * 10
-                next_url = f"{url}&start={start}"
+                start += 10
+                if start >= max_results:
+                    break
+                next_url = f"{base_url}&start={start}"
                 
                 # URLにstartパラメータが既にある場合は置き換え
                 if "&start=" in next_url or "?start=" in next_url:
@@ -782,19 +786,25 @@ class PlaywrightRikunabiNextScraper:
                 print(f"\n  ページ {page_num} を処理中...")
 
                 # ページのHTMLを取得してBeautifulSoupでパース
+                # JavaScriptで動的に読み込まれる可能性があるので、少し待つ
+                time.sleep(2)
                 html = page.content()
                 soup = BeautifulSoup(html, "lxml")
 
                 # 求人カードを取得（複数のセレクタを試す）
-                # Rikunabi Nextの実際のHTML構造に合わせてセレクタを調整
                 job_cards = []
                 
-                # 方法1: 求人カードを直接探す
-                job_cards = soup.find_all("div", class_=re.compile(r"rnn-jobCard|jobCard"))
+                # 方法1: 求人カードを直接探す（複数のパターン）
+                job_cards = soup.find_all("div", class_=re.compile(r"rnn-jobCard|jobCard|job-card", re.I))
                 if not job_cards:
-                    job_cards = soup.find_all("article", class_=re.compile(r"rnn-jobCard|jobCard"))
+                    job_cards = soup.find_all("article", class_=re.compile(r"rnn-jobCard|jobCard|job-card", re.I))
                 if not job_cards:
-                    job_cards = soup.find_all("li", class_=re.compile(r"rnn-jobCard|jobCard"))
+                    job_cards = soup.find_all("li", class_=re.compile(r"rnn-jobCard|jobCard|job-card", re.I))
+                if not job_cards:
+                    # より広範囲に探す
+                    job_cards = soup.find_all("div", {"data-job-id": True})
+                if not job_cards:
+                    job_cards = soup.find_all("a", href=re.compile(r"/job/"))
                 
                 # 方法2: ページ内のテキストから求人数を確認
                 page_text = soup.get_text()
