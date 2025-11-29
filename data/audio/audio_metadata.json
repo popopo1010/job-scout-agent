@@ -1,0 +1,15 @@
+{
+  "9d39622a2edfa0074a142d4315e8be79": {
+    "file_path": "data/audio/pending/2025-11-28_FUKUYAMA_test-slack-001.mp3",
+    "ca_id": "FUKUYAMA",
+    "date": "2025-11-28",
+    "meeting_id": "test-slack-001",
+    "status": "pending",
+    "file_size": 28440000,
+    "duration_seconds": null,
+    "transcript_path": null,
+    "uploaded_at": "2025-11-30T01:54:27.513650",
+    "processed_at": null,
+    "metadata": {}
+  }
+}

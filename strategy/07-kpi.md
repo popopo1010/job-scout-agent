@@ -56,7 +56,7 @@
 - [事業戦略一覧](README.md)
 - [経営計画](06-business-plan.md)
 - [Mission & Vision](01-mission-vision.md)
-- [成功要因](../spec/00-specification.md#13-成功要因csf-critical-success-factors) (一時的にspec内のリンク)
+- [事業戦略一覧](README.md)
 
 ---
 

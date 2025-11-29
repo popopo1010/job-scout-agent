@@ -139,16 +139,16 @@ class FeedbackGenerator:
 
             if score >= 3:
                 level = EvaluationLevel.A
-                comment = "すべての要素を満たしている"
+                comment = "すべての要素を満たしており、期待展開率8%を実現できるレベルです。"
             elif score >= 1:
                 level = EvaluationLevel.B
-                comment = "基本的な要素を満たしている"
+                comment = "基本的な要素を満たしていますが、さらなる改善の余地があります。"
             elif score >= 0:
                 level = EvaluationLevel.C
-                comment = "一部の要素が不足"
+                comment = "一部の要素が不足しています。期待展開率8%を実現するには改善が必要です。"
             else:
                 level = EvaluationLevel.D
-                comment = "改善が必要"
+                comment = "基本的な要素ができていません。根本的な見直しが必要です。"
 
             evaluations[item] = level
             comments[item + "_comment"] = comment
@@ -179,16 +179,16 @@ class FeedbackGenerator:
 
             if score >= 2:
                 level = EvaluationLevel.A
-                comment = "優れた対応"
+                comment = "優れた対応ができており、信頼関係構築に成功しています。"
             elif score >= 1:
                 level = EvaluationLevel.B
-                comment = "良好な対応"
+                comment = "良好な対応ですが、さらに工夫の余地があります。"
             elif score >= 0:
                 level = EvaluationLevel.C
-                comment = "標準的な対応"
+                comment = "標準的な対応です。期待展開率8%を実現するには改善が必要です。"
             else:
                 level = EvaluationLevel.D
-                comment = "改善が必要"
+                comment = "対応が不十分です。信頼関係構築の基本を見直してください。"
 
             evaluations[item] = level
             comments[item + "_comment"] = comment
@@ -205,54 +205,54 @@ class FeedbackGenerator:
     def _extract_good_points(
         self, content: str, pss: PSSEvaluation, ads: ADSEvaluation
     ) -> List[str]:
-        """良かった点を抽出"""
+        """評価できる点を抽出（営業マネージャー視点）"""
         good_points = []
 
         if pss.opening in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("適切な自己紹介と時間確認ができている")
+            good_points.append("適切な自己紹介と時間確認ができていた点は評価します。第一印象は良好でした。")
 
         if pss.need_identification in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("オープンクエスチョンでニーズを引き出している")
+            good_points.append("オープンクエスチョンを使ってニーズを引き出せていた点は成長の証です。ただし、より深い潜在ニーズまで引き出すことが期待展開率向上の鍵となります。")
 
         if pss.presentation in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("具体的な求人情報を提示できている")
+            good_points.append("具体的な求人情報を提示できていた点は良いですが、相手の反応を見ながらより刺さる情報を選ぶセンスを磨いていけば、さらに効果的になります。")
 
         if pss.closing in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("明確なネクストステップを設定している")
+            good_points.append("明確なネクストステップを設定できていた点は評価します。この基本動作を継続することで、成約につながります。")
 
         if ads.rapport_building in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("求職者への共感を示している")
+            good_points.append("求職者への共感を示せていた点は良いです。信頼関係構築の土台ができています。")
 
         if ads.value_delivery in (EvaluationLevel.A, EvaluationLevel.B):
-            good_points.append("求人のメリットを具体的に伝えている")
+            good_points.append("求人のメリットを具体的に伝えられていた点は評価します。さらに、相手のニーズに合わせてメリットを強調する工夫を加えれば、さらに効果的です。")
 
         return good_points[:3]  # 最大3つ
 
     def _extract_improvement_points(
         self, content: str, pss: PSSEvaluation, ads: ADSEvaluation
     ) -> List[str]:
-        """改善点を抽出"""
+        """必ず改善すべき点を抽出（営業マネージャー視点）"""
         improvements = []
 
         if pss.need_identification in (EvaluationLevel.C, EvaluationLevel.D):
-            improvements.append("より深いニーズの深掘りを行う")
+            improvements.append("【重要】ニーズの深掘りが不十分でした。表面的なニーズだけで提案を始めるのではなく、「なぜその求人を探しているのか」「本当の課題は何か」まで徹底的に引き出す必要があります。期待展開率8%を実現するには、潜在ニーズまで理解することが不可欠です。次回は、最低3回は深掘り質問を入れることを徹底してください。")
 
         if pss.handling_objections in (EvaluationLevel.C, EvaluationLevel.D):
-            improvements.append("反論や懸念への対応力を強化する")
+            improvements.append("【必須】反論や懸念への対応が弱かったです。相手の懸念を受け止めた後、具体的な解決策を提示できていない場面がありました。反論は成約のチャンスです。この点が改善されれば、確実に成果につながります。反論対応のフレームワークを再確認してください。")
 
         if pss.closing in (EvaluationLevel.C, EvaluationLevel.D):
-            improvements.append("クロージング時の期限設定を明確にする")
+            improvements.append("【緊急】クロージング時の期限設定が曖昧でした。次のアクションが明確でないと、せっかく良い雰囲気で終わっても、成約につながりません。期待展開率8%を実現するためには、明確な期限設定と相手の合意取得は必須です。次回は絶対に改善してください。")
 
         if ads.adaptability in (EvaluationLevel.C, EvaluationLevel.D):
-            improvements.append("相手のペースに合わせたコミュニケーションを心がける")
+            improvements.append("【必須】相手のペースに合わせたコミュニケーションができていませんでした。相手の理解度に応じて説明を調整することが、信頼関係構築につながります。次回は、相手の反応を見ながら会話のペースを調整してください。")
 
         if ads.value_delivery in (EvaluationLevel.C, EvaluationLevel.D):
-            improvements.append("具体的な数字やメリットをより明確に伝える")
+            improvements.append("【重要】具体的な数字やメリットをより明確に伝える必要があります。抽象的な表現では、求職者の心に響きません。年収、残業時間、福利厚生など、具体的な数字を使ってメリットを提示してください。")
 
         return improvements[:3]  # 最大3つ
 
     def _generate_advice(self, pss: PSSEvaluation, ads: ADSEvaluation) -> str:
-        """具体的アドバイスを生成"""
+        """具体的な改善アクションを生成（営業マネージャー視点）"""
         advice_parts = []
 
         # 最も低いスコアの項目にフォーカス
@@ -269,46 +269,108 @@ class FeedbackGenerator:
         if lowest[1] in (EvaluationLevel.C, EvaluationLevel.D):
             if lowest[0] == "オープニング":
                 advice_parts.append(
-                    "オープニングでは、自己紹介・目的・時間確認の3点を必ず含めましょう。"
+                    "1. 【オープニング】通話開始時には必ず以下を実行してください：\n"
+                    "   - 自己紹介（名前・所属）\n"
+                    "   - 通話の目的（何のための電話か）\n"
+                    "   - 時間確認（話せる時間はあるか）\n"
+                    "   これができていないと、他のすべてが台無しになります。"
                 )
             elif lowest[0] == "ニーズ把握":
                 advice_parts.append(
-                    "「なぜ？」「具体的には？」などの深掘り質問を意識的に使いましょう。"
+                    "1. 【ニーズ深掘り】通話中に必ず以下を実行してください：\n"
+                    "   - 「なぜその求人を探していらっしゃるんですか？」（1回目）\n"
+                    "   - 「具体的には、どのような課題をお感じですか？」（2回目）\n"
+                    "   - 「他にも気になる点はありますか？」（3回目）\n"
+                    "   これらを意識的に使うことで、潜在ニーズが見えてきます。"
                 )
             elif lowest[0] == "提案":
                 advice_parts.append(
-                    "年収・残業・仕事内容など、求職者のニーズに直結する情報を具体的に伝えましょう。"
+                    "1. 【提案】年収・残業・仕事内容など、求職者のニーズに直結する情報を具体的に伝えましょう。\n"
+                    "   抽象的な表現ではなく、「年収400万円、残業月20時間、電気工事の現場管理業務」のように具体的な数字と内容を提示してください。"
                 )
             elif lowest[0] == "反論対応":
                 advice_parts.append(
-                    "反論は否定せず「おっしゃる通りです」と一度受け止めてから回答しましょう。"
+                    "1. 【反論対応】反論が出た際は、以下のフレームワークを必ず使ってください：\n"
+                    "   - ステップ1: 「おっしゃる通りです。ご不安なお気持ち、よくわかります」（共感）\n"
+                    "   - ステップ2: 「実は、多くの方から同じご質問をいただくのですが...」（一般化）\n"
+                    "   - ステップ3: 「具体的には、こういうケースで...」（事例・解決策提示）\n"
+                    "   - ステップ4: 「いかがでしょうか？」（確認・合意取得）"
                 )
             elif lowest[0] == "クロージング":
                 advice_parts.append(
-                    "次のアクションと期限を明確に設定し、相手の合意を得ましょう。"
+                    "1. 【クロージング】通話終了前5分には必ず以下を実行：\n"
+                    "   - 「では、次回までに○○を準備していただくということでよろしいですか？」\n"
+                    "   - 「期限は今週金曜日17時まででお願いできますか？」\n"
+                    "   - 「承諾いただけましたか？」（明確な合意取得）"
                 )
 
         if not advice_parts:
-            advice_parts.append("全体的にバランスの取れた通話でした。さらなる向上のため、潜在ニーズの深掘りを意識しましょう。")
+            advice_parts.append(
+                "全体的にバランスの取れた通話でした。さらなる向上のため、潜在ニーズの深掘りを意識しましょう。"
+            )
+        else:
+            advice_parts.append(
+                "\nこれらを徹底することで、期待展開率8%に近づけます。厳しく聞こえるかもしれませんが、"
+                "これがKeyensのスタンダードです。あなたの成長を心から期待しています。"
+            )
 
-        return " ".join(advice_parts)
+        return "\n".join(advice_parts)
 
     def _generate_goals(self, pss: PSSEvaluation, ads: ADSEvaluation) -> str:
-        """次回目標を生成"""
+        """次回必須改善目標を生成（営業マネージャー視点）"""
+        overall_score = (sum([
+            pss.opening.score, pss.need_identification.score, pss.presentation.score,
+            pss.handling_objections.score, pss.closing.score,
+            ads.adaptability.score, ads.rapport_building.score, ads.value_delivery.score
+        ]) / 8)
+        
         goals = []
 
-        # 改善が必要な項目を1つ目標に
-        if pss.need_identification.score < 4:
-            goals.append("ニーズ把握で深掘り質問を2回以上行う")
-        if pss.closing.score < 4:
-            goals.append("クロージング時に具体的な期限を設定する")
-        if ads.rapport_building.score < 4:
-            goals.append("共感フレーズを会話中に3回以上使用する")
+        # スコアに応じて異なるレベルの目標を設定
+        if overall_score < 1.5:
+            # 要指導レベル：基本動作の徹底
+            if pss.opening.score < 4:
+                goals.append("【最優先】オープニングの3要素を必ず含める（自己紹介・目的・時間確認）。これができていないと、他のすべてが台無しになります。")
+            if pss.need_identification.score < 4:
+                goals.append("【必須】ニーズ把握で最低2回は深掘り質問をする（「なぜ？」「具体的には？」）。")
+            if pss.closing.score < 4:
+                goals.append("【必須】クロージングで期限を設定する。曖昧な終わり方では成約につながりません。")
+            if goals:
+                return "\n".join(goals) + "\n\nまずはこれらを完璧にできるようになりましょう。基本ができてから、次のステップに進みます。期待展開率8%を実現する道のりは厳しいですが、一歩ずつ確実に進んでください。"
+        
+        elif overall_score < 2.5:
+            # 要改善レベル：最重要改善目標
+            if pss.need_identification.score < 4:
+                goals.append("深掘り質問を最低3回以上実施する。これを実行することで、ニーズ把握のスコアをB以上にできるはずです。")
+            if pss.handling_objections.score < 4:
+                goals.append("反論対応のフレームワークを1回以上使用する。反論が出た際に、上記のフレームワークを必ず使ってください。")
+            if pss.closing.score < 4:
+                goals.append("クロージング時に明確な期限を設定し、相手から合意を得る。「はい、承知しました」という明確な返答をもらうまで確認してください。")
+            if goals:
+                return "\n".join(goals) + "\n\nこれらができなければ、次回も同じ評価になります。厳しいですが、成長には厳しさが必要です。あなたの成長を信じて期待しています。"
+        
+        elif overall_score < 3.5:
+            # 良好レベル：必須改善目標
+            if pss.need_identification.score < 4:
+                goals.append("深掘り質問を最低3回以上実施する。これを実行することで、ニーズ把握のスコアをB以上にできるはずです。")
+            if pss.handling_objections.score < 4:
+                goals.append("反論対応のフレームワークを1回以上使用する。反論が出た際に、上記のフレームワークを必ず使ってください。")
+            if pss.closing.score < 4:
+                goals.append("クロージング時に明確な期限を設定し、相手から合意を得る。期待展開率8%を実現するため、これらは必須です。")
+            if goals:
+                return "\n".join(goals) + "\n\n期待展開率8%を実現するため、これらは必須です。次回の通話で必ず達成してください。あなたの成長を期待しています。"
+        
+        else:
+            # 優秀レベル：チャレンジ目標
+            goals.append("潜在ニーズまで深掘りし、相手も気づいていなかった課題を引き出す")
+            goals.append("反論を完全に機会に変え、成約率をさらに向上させる")
+            goals.append("クロージングで期限を設定し、確実に次のステップに進む")
+            return "\n".join(goals) + "\n\nあなたなら可能です。期待しています。"
 
         if not goals:
             goals.append("現状の質を維持しながら、より複雑なケースにも対応できるよう準備する")
 
-        return goals[0]
+        return goals[0] if goals else "現状の質を維持しながら、さらなる向上を目指してください。"
 
     def _generate_with_ai(self, transcript: Transcript) -> Feedback:
         """Claude AIを使用したフィードバック生成"""
@@ -323,7 +385,13 @@ class FeedbackGenerator:
         # 評価基準を含めたプロンプトを構築
         criteria_text = self.criteria_content or self._get_default_criteria()
 
-        prompt = f"""以下の営業通話の書き起こしを分析し、PSS/ADSの観点でフィードバックを生成してください。
+        prompt = f"""あなたはKeyensの営業マネージャーとして、メンバーの成長を期待しながらも厳しくも建設的なフィードバックを提供する役割を担っています。
+
+## 重要な方針
+- メンバーの成長を第一に考えるが、厳しさも忘れない
+- 期待展開率8%を実現するために必要な基準を明確に示す
+- 建設的で実行可能なフィードバックを提供
+- 成長を信じて期待を込めた表現を使用
 
 ## 評価基準
 {criteria_text}
@@ -331,27 +399,58 @@ class FeedbackGenerator:
 ## 書き起こし内容
 {transcript.content}
 
+## フィードバック生成の指示
+
+### 1. 評価コメントの書き方
+各項目の評価コメントは、以下のスタイルで書いてください：
+- 評価が高い場合: 良い点を評価しつつ、さらなる改善の余地を示唆
+- 評価が低い場合: なぜ低い評価なのか理由を明確に説明し、期待展開率8%との関連性を示す
+- 常に具体的で、実行可能な改善アクションを提示
+
+### 2. 良かった点
+- 「適切な自己紹介と時間確認ができていた点は評価します。第一印象は良好でした。」
+  のように、評価しつつもさらなる成長への期待を示す
+- 最大3つ、具体的な行動や発言に基づいて記載
+
+### 3. 改善点
+- 「【重要】」「【必須】」「【緊急】」などの重要度マークを付ける
+- なぜその改善が必要なのか（期待展開率8%との関連）を明確に
+- 具体的な数値目標や行動を指定（例：「最低3回は深掘り質問を入れる」）
+- 厳しいが建設的な表現を使用
+
+### 4. 具体的な改善アドバイス
+- 「具体的な改善アクション（次回通話までに必ず実行すること）」として記載
+- ステップバイステップで実行可能な内容
+- フレームワークや具体的なフレーズを含める
+
+### 5. 次回に向けた目標
+スコアに応じて厳しさを調整：
+- 3.5以上: さらに上位10%を目指すチャレンジ目標
+- 2.5-3.4: 必須改善目標（期待展開率8%達成のため必須）
+- 1.5-2.4: 最重要改善目標（基本動作の徹底）
+- 1.5未満: 緊急改善目標（営業の基本を見直す）
+
 ## 出力形式
 以下のJSON形式で出力してください。評価レベルは A/B/C/D のいずれかで指定してください。
 
 ```json
 {{
   "pss": {{
-    "opening": {{"level": "A/B/C/D", "comment": "評価コメント"}},
-    "need_identification": {{"level": "A/B/C/D", "comment": "評価コメント"}},
-    "presentation": {{"level": "A/B/C/D", "comment": "評価コメント"}},
-    "handling_objections": {{"level": "A/B/C/D", "comment": "評価コメント"}},
-    "closing": {{"level": "A/B/C/D", "comment": "評価コメント"}}
+    "opening": {{"level": "A/B/C/D", "comment": "評価コメント（なぜその評価なのか理由を明記）"}},
+    "need_identification": {{"level": "A/B/C/D", "comment": "評価コメント（期待展開率との関連性を含める）"}},
+    "presentation": {{"level": "A/B/C/D", "comment": "評価コメント（改善アクションを含める）"}},
+    "handling_objections": {{"level": "A/B/C/D", "comment": "評価コメント（具体的な改善方法を含める）"}},
+    "closing": {{"level": "A/B/C/D", "comment": "評価コメント（基本動作としての重要性を示す）"}}
   }},
   "ads": {{
     "adaptability": {{"level": "A/B/C/D", "comment": "評価コメント"}},
     "rapport_building": {{"level": "A/B/C/D", "comment": "評価コメント"}},
     "value_delivery": {{"level": "A/B/C/D", "comment": "評価コメント"}}
   }},
-  "good_points": ["良かった点1", "良かった点2", "良かった点3"],
-  "improvement_points": ["改善点1", "改善点2", "改善点3"],
-  "specific_advice": "具体的な改善アドバイス",
-  "next_goals": "次回に向けた目標"
+  "good_points": ["評価できる点1（評価しつつ成長への期待を示す）", "評価できる点2", "評価できる点3"],
+  "improvement_points": ["【重要/必須/緊急】改善点1（理由と期待展開率との関連を含む）", "改善点2", "改善点3"],
+  "specific_advice": "具体的な改善アクション。ステップバイステップで実行可能な内容。フレームワークや具体的なフレーズを含める。期待展開率8%達成のため必須。",
+  "next_goals": "次回通話での必須改善目標。スコアに応じた適切な厳しさで、具体的な数値目標や行動を指定。成長を信じて期待を込めた表現。"
 }}
 ```
 

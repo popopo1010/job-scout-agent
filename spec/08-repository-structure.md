@@ -157,7 +157,7 @@ job-scout-agent/
 
 ### 2.4 `spec/` - 仕様書・ドキュメント
 
-- **00-specification.md**: 使用定義書（仕様定義書）- Missionを含む
+- **00-specification.md**: 使用定義書（仕様定義書）- システム実装の仕様（事業戦略は[`strategy/`](../strategy/)に分離）
 - **00-quickstart.md**: 実装開始のためのガイド
 - **01-requirements.md**: 詳細な要件と仕様
 - **02-use-cases.md**: 具体的な利用シナリオ
