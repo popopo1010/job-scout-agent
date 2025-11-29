@@ -54,7 +54,21 @@ class PlaywrightIndeedScraper:
         self.context = self.browser.new_context(
             viewport={"width": 1920, "height": 1080},
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            locale="ja-JP",
+            timezone_id="Asia/Tokyo",
         )
+        # ボット検出を回避するためのJavaScriptを追加
+        self.context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            window.navigator.chrome = {
+                runtime: {}
+            };
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
+        """)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -258,23 +272,35 @@ class PlaywrightIndeedScraper:
                     
                     # 求人が見つかるか確認（複数回試行）
                     test_cards = []
-                    for retry in range(10):  # 10回までリトライ
-                        time.sleep(2)
+                    for retry in range(15):  # 15回までリトライ
+                        time.sleep(3)
                         current_html = page.content()
                         current_soup = BeautifulSoup(current_html, "lxml")
                         test_cards = current_soup.find_all("a", {"data-jk": True})
                         if test_cards:
                             print(f"  次のページで {len(test_cards)}件の求人カードを発見")
                             break
-                        if retry < 9:
-                            print(f"    求人検索リトライ {retry + 1}/10...")
+                        if retry < 14:
+                            print(f"    求人検索リトライ {retry + 1}/15...")
                             # ページをスクロールしてコンテンツを読み込む
                             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                            time.sleep(1)
+                            time.sleep(2)
+                            # ページを再読み込み
+                            try:
+                                page.reload(wait_until="domcontentloaded", timeout=30000)
+                            except:
+                                pass
                     
                     if not test_cards:
-                        print("  次のページに求人がありませんでした。終了します。")
-                        break
+                        print("  次のページに求人が見つかりませんでした。")
+                        consecutive_empty += 1
+                        if consecutive_empty >= 3:  # 3回連続で見つからない場合のみ終了
+                            print("  連続して求人が見つかりませんでした。終了します。")
+                            break
+                        # 次のページに進む（求人が見つからなくても続行）
+                        continue
+                    else:
+                        consecutive_empty = 0
                     
                     # 同じページか確認（取得した求人数で判断）
                     if len(test_cards) == 0:
@@ -829,7 +855,32 @@ class PlaywrightRikunabiNextScraper:
                     except Exception as e:
                         print(f"  Playwright取得エラー: {e}")
                 
-                # 方法4: /job/で始まるリンクを探す
+                # 方法4: Playwrightで直接要素を取得（JavaScriptで読み込まれた後）
+                if not job_cards:
+                    try:
+                        # ページが完全に読み込まれるまで待つ
+                        page.wait_for_load_state("networkidle", timeout=30000)
+                        time.sleep(3)
+                        
+                        # Playwrightのセレクタで直接取得
+                        playwright_cards = page.query_selector_all(
+                            "div[class*='jobCard'], article[class*='jobCard'], li[class*='jobCard'], "
+                            "div[class*='job-card'], a[href*='/job/']"
+                        )
+                        if playwright_cards:
+                            print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見")
+                            # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
+                            for pw_card in playwright_cards:
+                                try:
+                                    card_html = pw_card.inner_html()
+                                    card_soup = BeautifulSoup(card_html, "lxml")
+                                    job_cards.append(card_soup)
+                                except:
+                                    pass
+                    except Exception as e:
+                        print(f"  Playwright取得エラー: {e}")
+                
+                # 方法5: /job/で始まるリンクを探す
                 if not job_cards:
                     job_links = soup.find_all("a", href=re.compile(r"/job/"))
                     print(f"  /job/で始まるリンク数: {len(job_links)}")
