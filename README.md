@@ -155,6 +155,7 @@ mypy src/
 | [デプロイ手順](spec/06-deployment.md) | 環境構築・デプロイ |
 | [運用ガイド](spec/07-operations.md) | 日常運用手順 |
 | [リポジトリ構造](spec/08-repository-structure.md) | プロジェクト構造 |
+| [音声データFB要件定義](spec/09-audio-feedback-requirements.md) | 音声データフィードバックシステム要件 |
 
 ## マーケットサイズ
 

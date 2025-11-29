@@ -306,6 +306,10 @@ https://www.linebiz.com/jp/service/line-official-account/
 
 ## 参考資料
 
+### CA運作用資料（ローカルファイル）
+
+- [PSS-テキスト.pdf](./references/ca-operations/PSS-テキスト.pdf) - Professional Selling Skills（プロフェッショナル・セリング・スキル）のテキスト
+
 ### by エス・エム・エス
 
 - [【KJA】基本的なマッチングの流れとポイントv1.1.pdf](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/d04cc68c-78d4-4754-8849-9a2642854c7e/%E3%80%90KJA%E3%80%91%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E3%83%9E%E3%83%83%E3%83%81%E3%83%B3%E3%82%B0%E3%81%AE%E6%B5%81%E3%82%8C%E3%81%A8%E3%83%9D%E3%82%A4%E3%83%B3%E3%83%88v1.1.pdf)
