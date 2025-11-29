@@ -15,8 +15,8 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from src.job_data.playwright_scrapers import (
-    PlaywrightIndeedScraper,
     PlaywrightRikunabiNextScraper,
+    PlaywrightDenkikoujiComScraper,
     PlaywrightScrapingOptions,
 )
 from src.job_data.phone_researcher import PhoneResearcher
@@ -53,26 +53,7 @@ def main() -> None:
         headless=False,  # ヘッドレスモードを無効化（Cloudflare検証を避けるため）
     )
 
-    # 1. Indeedからスクレイピング（Playwright使用）
-    print("■ Indeedからスクレイピング中（Playwright）...")
-    print()
-    try:
-        with PlaywrightIndeedScraper(options=scraping_options) as indeed_scraper:
-            indeed_jobs = indeed_scraper.search_jobs(
-                keyword=keyword,
-                location="",  # 全国
-                max_results=max_results,
-            )
-            all_jobs_data.extend(indeed_jobs)
-            all_source_urls.append("https://jp.indeed.com/")
-            print(f"Indeed: {len(indeed_jobs)}件の求人を取得しました")
-            print()
-    except Exception as e:
-        print(f"Indeedスクレイピングエラー: {e}")
-        import traceback
-        traceback.print_exc()
-
-    # 2. Rikunabi Nextからスクレイピング（Playwright使用）
+    # 1. Rikunabi Nextからスクレイピング（Playwright使用）
     print("■ Rikunabi Nextからスクレイピング中（Playwright）...")
     print()
     try:
@@ -88,6 +69,25 @@ def main() -> None:
             print()
     except Exception as e:
         print(f"Rikunabi Nextスクレイピングエラー: {e}")
+        import traceback
+        traceback.print_exc()
+
+    # 2. 電気工事.comからスクレイピング（Playwright使用）
+    print("■ 電気工事.comからスクレイピング中（Playwright）...")
+    print()
+    try:
+        with PlaywrightDenkikoujiComScraper(options=scraping_options) as denkikouji_scraper:
+            denkikouji_jobs = denkikouji_scraper.search_jobs(
+                keyword=keyword,
+                area="",  # 全国
+                max_results=max_results,
+            )
+            all_jobs_data.extend(denkikouji_jobs)
+            all_source_urls.append("https://denkikouji.com/")
+            print(f"電気工事.com: {len(denkikouji_jobs)}件の求人を取得しました")
+            print()
+    except Exception as e:
+        print(f"電気工事.comスクレイピングエラー: {e}")
         import traceback
         traceback.print_exc()
 
@@ -143,10 +143,10 @@ def main() -> None:
             job_data["scraped_id"] = f"{prefix}{i:04d}"
 
         # ソースを設定
-        if "indeed" in job_data.get("url", "").lower():
-            job_data["source"] = "indeed"
-        elif "rikunabi" in job_data.get("url", "").lower():
+        if "rikunabi" in job_data.get("url", "").lower():
             job_data["source"] = "rikunabi_next"
+        elif "denkikouji" in job_data.get("url", "").lower():
+            job_data["source"] = "denkikouji_com"
         else:
             job_data["source"] = job_data.get("source", "unknown")
 

@@ -883,51 +883,66 @@ class PlaywrightRikunabiNextScraper:
                 # 方法3: Playwrightで直接要素を取得（JavaScriptで読み込まれた後）
                 if not job_cards:
                     try:
-                        # より長く待つ
-                        time.sleep(5)
-                        
-                        # ページをスクロールしてコンテンツを読み込む
-                        try:
-                            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                            time.sleep(2)
-                            page.evaluate("window.scrollTo(0, 0)")
-                            time.sleep(2)
-                        except:
-                            pass
-                        
-                        # 複数のセレクタパターンを試す
-                        selectors = [
-                            "div[class*='jobCard']",
-                            "article[class*='jobCard']",
-                            "li[class*='jobCard']",
-                            "div[class*='job-card']",
-                            "a[href*='/job/']",
-                            "div[data-job-id]",
-                            "article[data-job-id]",
-                            "div[class*='rnn-jobCard']",
-                            "article[class*='rnn-jobCard']",
-                        ]
-                        
-                        for selector in selectors:
+                        # より長く待つ（JavaScriptで動的に読み込まれる要素を待つ）
+                        print("  JavaScriptで動的に読み込まれる要素を待機中...")
+                        for wait_attempt in range(10):
+                            time.sleep(3)
+                            
+                            # ページをスクロールしてコンテンツを読み込む
                             try:
-                                playwright_cards = page.query_selector_all(selector)
-                                if playwright_cards and len(playwright_cards) > 0:
-                                    print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見（セレクタ: {selector}）")
-                                    # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
-                                    for pw_card in playwright_cards:
-                                        try:
-                                            card_html = pw_card.inner_html()
-                                            if card_html and len(card_html) > 50:  # 空でないことを確認
-                                                card_soup = BeautifulSoup(card_html, "lxml")
-                                                job_cards.append(card_soup)
-                                        except:
-                                            pass
-                                    if job_cards:
-                                        break
-                            except Exception as e:
-                                continue
+                                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                                time.sleep(2)
+                                page.evaluate("window.scrollTo(0, 0)")
+                                time.sleep(2)
+                            except:
+                                pass
+                            
+                            # 複数のセレクタパターンを試す
+                            selectors = [
+                                "div[class*='jobCard']",
+                                "article[class*='jobCard']",
+                                "li[class*='jobCard']",
+                                "div[class*='job-card']",
+                                "a[href*='/job/']",
+                                "div[data-job-id]",
+                                "article[data-job-id]",
+                                "div[class*='rnn-jobCard']",
+                                "article[class*='rnn-jobCard']",
+                                "div.rnn-jobCard",
+                                "article.rnn-jobCard",
+                                "li.rnn-jobCard",
+                                "div[class*='rnn-job-card']",
+                                "a[href*='rikunabi.com/job/']",
+                            ]
+                            
+                            for selector in selectors:
+                                try:
+                                    playwright_cards = page.query_selector_all(selector)
+                                    if playwright_cards and len(playwright_cards) > 0:
+                                        print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見（セレクタ: {selector}）")
+                                        # Playwrightの要素からHTMLを取得してBeautifulSoupでパース
+                                        for pw_card in playwright_cards:
+                                            try:
+                                                card_html = pw_card.inner_html()
+                                                if card_html and len(card_html) > 50:  # 空でないことを確認
+                                                    card_soup = BeautifulSoup(card_html, "lxml")
+                                                    job_cards.append(card_soup)
+                                            except:
+                                                pass
+                                        if job_cards:
+                                            break
+                                except Exception as e:
+                                    continue
+                            
+                            if job_cards:
+                                break
+                            
+                            if wait_attempt < 9:
+                                print(f"    待機中... ({wait_attempt + 1}/10)")
                     except Exception as e:
                         print(f"  Playwright取得エラー: {e}")
+                        import traceback
+                        traceback.print_exc()
                 
                 # 方法5: /job/で始まるリンクを探す
                 if not job_cards:
@@ -1345,4 +1360,386 @@ class PlaywrightRikunabiNextScraper:
             import traceback
             traceback.print_exc()
             return None
+
+
+class PlaywrightDenkikoujiComScraper:
+    """Playwrightを使った電気工事.comスクレイパー"""
+
+    BASE_URL = "https://denkikouji.com"
+
+    def __init__(self, options: Optional[PlaywrightScrapingOptions] = None) -> None:
+        self.options = options or PlaywrightScrapingOptions()
+        self.playwright = None
+        self.browser: Optional[Browser] = None
+        self.context: Optional[BrowserContext] = None
+
+    def __enter__(self):
+        """コンテキストマネージャーとして使用"""
+        self.playwright = sync_playwright().start()
+        self.browser = self.playwright.chromium.launch(
+            headless=self.options.headless,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage",
+                "--no-sandbox",
+            ],
+        )
+        self.context = self.browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            locale="ja-JP",
+            timezone_id="Asia/Tokyo",
+        )
+        # ボット検出を回避するためのJavaScriptを追加
+        self.context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            window.navigator.chrome = {
+                runtime: {}
+            };
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
+        """)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """クリーンアップ"""
+        if self.context:
+            self.context.close()
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+
+    def search_jobs(
+        self,
+        keyword: str = "電気工事士",
+        area: str = "",
+        max_results: int = 1000,
+    ) -> List[Dict[str, Any]]:
+        """求人を検索してスクレイピング"""
+        if not self.context:
+            raise RuntimeError("コンテキストが初期化されていません。with文で使用してください。")
+
+        jobs = []
+        seen_job_ids = set()  # 重複チェック用
+        page = self.context.new_page()
+
+        try:
+            # 検索URLを構築
+            from urllib.parse import quote
+            search_url = f"{self.BASE_URL}/job/search?keyword={quote(keyword)}"
+            if area:
+                search_url += f"&area={quote(area)}"
+
+            print(f"電気工事.com: {search_url} を取得中...")
+
+            # ページにアクセス
+            try:
+                page.goto(search_url, wait_until="domcontentloaded", timeout=int(self.options.timeout))
+            except Exception as e:
+                print(f"  ページ読み込みエラー: {e}")
+                try:
+                    page.reload(wait_until="domcontentloaded", timeout=int(self.options.timeout))
+                except:
+                    pass
+
+            # ページが完全に読み込まれるまで待つ
+            try:
+                page.wait_for_load_state("networkidle", timeout=30000)
+            except:
+                pass
+            time.sleep(5)
+
+            page_num = 1
+            consecutive_empty = 0
+
+            while len(jobs) < max_results and page_num <= self.options.max_pages:
+                print(f"\n  ページ {page_num} を処理中...")
+
+                # ページをスクロールしてコンテンツを読み込む
+                try:
+                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    time.sleep(2)
+                    page.evaluate("window.scrollTo(0, 0)")
+                    time.sleep(2)
+                except:
+                    pass
+
+                html = page.content()
+                soup = BeautifulSoup(html, "lxml")
+
+                # 求人カードを取得（複数のセレクタを試す）
+                job_cards = []
+                
+                # 方法1: 求人カードを直接探す
+                job_cards = soup.find_all("div", class_=re.compile(r"job-card|jobCard|job_item", re.I))
+                if not job_cards:
+                    job_cards = soup.find_all("article", class_=re.compile(r"job-card|jobCard|job_item", re.I))
+                if not job_cards:
+                    job_cards = soup.find_all("li", class_=re.compile(r"job-card|jobCard|job_item", re.I))
+                if not job_cards:
+                    job_cards = soup.find_all("div", {"data-job-id": True})
+                if not job_cards:
+                    job_cards = soup.find_all("a", href=re.compile(r"/job/|/detail/"))
+
+                # 方法2: Playwrightで直接要素を取得
+                if not job_cards:
+                    try:
+                        time.sleep(3)
+                        selectors = [
+                            "div[class*='job-card']",
+                            "article[class*='job-card']",
+                            "li[class*='job-card']",
+                            "div[class*='jobCard']",
+                            "a[href*='/job/']",
+                            "a[href*='/detail/']",
+                            "div[data-job-id]",
+                        ]
+                        
+                        for selector in selectors:
+                            try:
+                                playwright_cards = page.query_selector_all(selector)
+                                if playwright_cards and len(playwright_cards) > 0:
+                                    print(f"  Playwrightで {len(playwright_cards)}件の求人カードを発見（セレクタ: {selector}）")
+                                    for pw_card in playwright_cards:
+                                        try:
+                                            card_html = pw_card.inner_html()
+                                            if card_html and len(card_html) > 50:
+                                                card_soup = BeautifulSoup(card_html, "lxml")
+                                                job_cards.append(card_soup)
+                                        except:
+                                            pass
+                                    if job_cards:
+                                        break
+                            except:
+                                continue
+                    except Exception as e:
+                        print(f"  Playwright取得エラー: {e}")
+
+                if not job_cards:
+                    print("  求人が見つかりませんでした。")
+                    consecutive_empty += 1
+                    if consecutive_empty >= 2:
+                        print("  連続して求人が見つかりませんでした。終了します。")
+                        break
+                    continue
+
+                consecutive_empty = 0
+                print(f"  求人カード数: {len(job_cards)}")
+
+                page_jobs_count = 0
+                for i, card in enumerate(job_cards):
+                    if len(jobs) >= max_results:
+                        break
+
+                    job_data = self._parse_job_card_bs4(soup, card, keyword)
+                    if job_data:
+                        job_id = job_data.get("source_id") or job_data.get("scraped_id")
+                        if job_id and job_id in seen_job_ids:
+                            continue
+                        seen_job_ids.add(job_id)
+                        
+                        jobs.append(job_data)
+                        page_jobs_count += 1
+                        if len(jobs) <= 20 or page_jobs_count <= 5:
+                            print(f"  ✓ [{len(jobs)}] {job_data.get('company_name', 'N/A')[:25]} - {job_data.get('title', 'N/A')[:35]}")
+
+                print(f"  ページ {page_num}: {page_jobs_count}件取得 (累計: {len(jobs)}件)")
+
+                if len(jobs) >= max_results:
+                    break
+
+                # 次のページに移動
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                time.sleep(1)
+
+                # 次のページボタンを探す
+                next_button = page.query_selector("a[class*='next'], a[aria-label*='次'], a[href*='page=']")
+                if not next_button:
+                    # URLを直接変更
+                    page_num += 1
+                    next_url = f"{search_url}&page={page_num}"
+                    try:
+                        page.goto(next_url, wait_until="domcontentloaded", timeout=int(self.options.timeout))
+                        time.sleep(self.options.delay)
+                        current_html = page.content()
+                        if current_html == html:
+                            print("  同じページが表示されました。終了します。")
+                            break
+                        continue
+                    except:
+                        print("  次のページに移動できませんでした。終了します。")
+                        break
+
+                next_button.click()
+                time.sleep(self.options.delay)
+                page_num += 1
+
+        except Exception as e:
+            print(f"エラー: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            page.close()
+
+        print(f"\n電気工事.com: 合計 {len(jobs)}件の求人を取得しました")
+        return jobs
+
+    def _parse_job_card_bs4(self, soup: BeautifulSoup, card: Any, keyword: str) -> Optional[Dict[str, Any]]:
+        """BeautifulSoupで求人カードをパース"""
+        try:
+            # タイトル
+            title = ""
+            title_elem = card.find("h2") or card.find("h3") or card.find("a", class_=re.compile(r"title"))
+            if title_elem:
+                title = title_elem.get_text(strip=True)
+
+            if not title:
+                return None
+
+            # URLとjob_id
+            url = ""
+            job_id = ""
+            link_elem = card.find("a", href=True)
+            if link_elem:
+                href = link_elem.get("href", "")
+                if href:
+                    if href.startswith("/"):
+                        url = f"{self.BASE_URL}{href}"
+                    else:
+                        url = href
+                    # URLからjob_idを抽出
+                    match = re.search(r"/job/(\d+)|/detail/(\d+)", href)
+                    if match:
+                        job_id = match.group(1) or match.group(2)
+
+            # 会社名
+            company_name = ""
+            company_elem = card.find("div", class_=re.compile(r"company")) or card.find("span", class_=re.compile(r"company"))
+            if company_elem:
+                company_name = company_elem.get_text(strip=True)
+            else:
+                # 親要素から探す
+                parent = card.parent
+                for depth in range(5):
+                    if not parent:
+                        break
+                    company_elem = parent.find("div", class_=re.compile(r"company")) or parent.find("span", class_=re.compile(r"company"))
+                    if company_elem:
+                        company_name = company_elem.get_text(strip=True)
+                        break
+                    parent = parent.parent
+
+            # 場所
+            location = ""
+            location_elem = card.find("div", class_=re.compile(r"location|area")) or card.find("span", class_=re.compile(r"location|area"))
+            if location_elem:
+                location = location_elem.get_text(strip=True)
+
+            # 給与
+            salary_text = ""
+            salary_elem = card.find("div", class_=re.compile(r"salary")) or card.find("span", class_=re.compile(r"salary"))
+            if salary_elem:
+                salary_text = salary_elem.get_text(strip=True)
+
+            if not company_name:
+                return None
+
+            # 給与をパース
+            salary_info = self._parse_salary(salary_text)
+
+            # 都道府県と市区町村を抽出
+            prefecture, city = self._parse_location(location)
+
+            return {
+                "scraped_id": f"DK{job_id[:6]}" if job_id else "",
+                "source_id": job_id or "",
+                "company_name": company_name[:100],
+                "prefecture": prefecture,
+                "city": city or location[:50] if location else "",
+                "title": title[:100],
+                "qualification": keyword,
+                "salary_type": salary_info["type"],
+                "daily_min": salary_info.get("daily_min"),
+                "daily_max": salary_info.get("daily_max"),
+                "monthly_min": salary_info.get("monthly_min"),
+                "monthly_max": salary_info.get("monthly_max"),
+                "yearly_min": salary_info.get("yearly_min"),
+                "yearly_max": salary_info.get("yearly_max"),
+                "url": url,
+                "scraped_at": datetime.now().strftime("%Y-%m-%d"),
+            }
+
+        except Exception as e:
+            print(f"パースエラー: {e}")
+            return None
+
+    def _parse_salary(self, salary_text: str) -> Dict[str, Any]:
+        """給与テキストをパース"""
+        if not salary_text:
+            return {"type": "monthly"}
+
+        # 年収
+        yearly_match = re.search(r"年収[：:]\s*(\d+)[〜~-]?(\d+)?万円?", salary_text)
+        if yearly_match:
+            min_val = float(yearly_match.group(1))
+            max_val = float(yearly_match.group(2)) if yearly_match.group(2) else min_val
+            return {
+                "type": "yearly",
+                "yearly_min": min_val,
+                "yearly_max": max_val,
+            }
+
+        # 月給
+        monthly_match = re.search(r"月給[：:]\s*(\d+)[〜~-]?(\d+)?万円?", salary_text)
+        if monthly_match:
+            min_val = float(monthly_match.group(1))
+            max_val = float(monthly_match.group(2)) if monthly_match.group(2) else min_val
+            return {
+                "type": "monthly",
+                "monthly_min": min_val,
+                "monthly_max": max_val,
+            }
+
+        # 日給
+        daily_match = re.search(r"日給[：:]\s*(\d+)[〜~-]?(\d+)?円?", salary_text)
+        if daily_match:
+            min_val = int(daily_match.group(1))
+            max_val = int(daily_match.group(2)) if daily_match.group(2) else min_val
+            return {
+                "type": "daily",
+                "daily_min": min_val,
+                "daily_max": max_val,
+            }
+
+        return {"type": "monthly"}
+
+    def _parse_location(self, location: str) -> tuple[str, str]:
+        """場所を都道府県と市区町村に分割"""
+        if not location:
+            return ("", "")
+
+        prefectures = [
+            "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+            "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+            "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
+            "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県",
+            "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+            "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県",
+            "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+        ]
+
+        prefecture = ""
+        city = location
+
+        for pref in prefectures:
+            if pref in location:
+                prefecture = pref
+                city = location.replace(pref, "").strip()
+                break
+
+        return (prefecture, city)
 
