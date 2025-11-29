@@ -133,7 +133,7 @@ job-scout-agent/
 - **Social（社会）**: 平均年齢40代中盤から後半、働き方改革、CBT方式導入、技術継承の課題など
 - **Technological（技術）**: BIM、ICT施工、CCUS、スマートグリッド、新技術・新工法など
 
-詳細は [使用定義書（仕様定義書）](./00-specification.md) の「PEST分析」セクションを参照してください。
+詳細は [事業戦略 - PEST分析](../strategy/02-pest-analysis.md) を参照してください。
 
 ## 次のステップ
 
@@ -152,7 +152,8 @@ job-scout-agent/
 
 ## 関連ドキュメント
 
-- [使用定義書（仕様定義書）](./00-specification.md) - Missionを含むプロジェクト全体の仕様
+- [使用定義書（仕様定義書）](./00-specification.md) - システム実装の仕様
+- [事業戦略一覧](../strategy/README.md) - Mission、Vision、経営計画など
 - [要件定義](./01-requirements.md)
 - [ユースケース](./02-use-cases.md)
 - [アーキテクチャ](./03-architecture.md)

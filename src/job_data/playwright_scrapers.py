@@ -1453,7 +1453,43 @@ class PlaywrightDenkikoujiComScraper:
                 page.wait_for_load_state("networkidle", timeout=30000)
             except:
                 pass
-            time.sleep(5)
+            time.sleep(3)
+
+            # 検索フォームにキーワードを入力して送信（URLパラメータで検索結果が表示されない場合）
+            try:
+                # 検索結果が表示されているか確認
+                html_check = page.content()
+                soup_check = BeautifulSoup(html_check, "lxml")
+                # 求人リストが表示されているか確認
+                has_job_list = bool(soup_check.find_all("a", href=re.compile(r"/list/\d+")))
+                
+                if not has_job_list:
+                    print("  検索フォームから検索を実行...")
+                    # キーワード入力欄を探す
+                    keyword_input = page.query_selector("input[name='keyword'], input[type='text'][name*='keyword']")
+                    if keyword_input:
+                        keyword_input.fill(keyword)
+                        time.sleep(1)
+                        
+                        # 検索ボタンをクリック
+                        search_button = page.query_selector("button[type='submit'], input[type='submit'], button:has-text('検索'), button:has-text('探す')")
+                        if search_button:
+                            search_button.click()
+                        else:
+                            # Enterキーで送信
+                            keyword_input.press("Enter")
+                        
+                        # 検索結果が表示されるまで待つ
+                        print("  検索結果の表示を待機中...")
+                        for wait_attempt in range(10):
+                            time.sleep(2)
+                            html_wait = page.content()
+                            soup_wait = BeautifulSoup(html_wait, "lxml")
+                            if soup_wait.find_all("a", href=re.compile(r"/list/\d+")):
+                                print(f"  検索結果が表示されました（{wait_attempt * 2}秒後）")
+                                break
+            except Exception as e:
+                print(f"  検索フォーム送信エラー: {e}")
 
             page_num = 1
             consecutive_empty = 0
@@ -1675,8 +1711,22 @@ class PlaywrightDenkikoujiComScraper:
             # テキストから会社名を抽出（「株式会社」などのパターンを探す）
             if not company_name:
                 card_text = card.get_text()
-                # 株式会社、有限会社などのパターンを探す
+                # 株式会社、有限会社などのパターンを探す（"New"などの単語を除外）
                 company_match = re.search(r"([株有合][式会社]*[^\s\n]{2,30})", card_text)
+                if company_match:
+                    company_name = company_match.group(1).strip()
+            
+            # "New"などの無効な会社名を除外・クリーンアップ
+            if company_name in ["New", "new", "NEW", "閲覧履歴", "気になる"]:
+                company_name = ""
+            # 会社名から"New"を除去
+            if company_name:
+                company_name = re.sub(r"\s*New\s*$", "", company_name, flags=re.I).strip()
+                company_name = re.sub(r"^New\s+", "", company_name, flags=re.I).strip()
+            
+            # タイトルから会社名を抽出（会社名がタイトルに含まれている場合）
+            if not company_name and title:
+                company_match = re.search(r"([株有合][式会社]*[^\s\n]{2,30})", title)
                 if company_match:
                     company_name = company_match.group(1).strip()
 

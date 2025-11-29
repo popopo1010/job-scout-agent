@@ -83,7 +83,7 @@ def main() -> None:
                 max_results=max_results,
             )
             all_jobs_data.extend(denkikouji_jobs)
-            all_source_urls.append("https://denkikouji.com/")
+            all_source_urls.append("https://koujishi.com/")
             print(f"電気工事.com: {len(denkikouji_jobs)}件の求人を取得しました")
             print()
     except Exception as e:
@@ -145,8 +145,8 @@ def main() -> None:
         # ソースを設定
         if "rikunabi" in job_data.get("url", "").lower():
             job_data["source"] = "rikunabi_next"
-        elif "denkikouji" in job_data.get("url", "").lower():
-            job_data["source"] = "denkikouji_com"
+        elif "koujishi" in job_data.get("url", "").lower():
+            job_data["source"] = "koujishi_com"
         else:
             job_data["source"] = job_data.get("source", "unknown")
 

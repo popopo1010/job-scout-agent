@@ -9,13 +9,14 @@
 ## システム構成
 
 ```
-音声ファイル → アップロード → 書き起こしファイルと紐付け → フィードバック生成
+音声ファイル → アップロード → 書き起こしファイルと紐付け → フィードバック生成 → Slack通知
 ```
 
 1. **音声ファイルのアップロード**: 音声ファイルをシステムに登録
 2. **書き起こしの実施**: ZoomやNottaで手動で書き起こしを行う
 3. **紐付け**: 書き起こしファイルを音声ファイルと紐付け
 4. **自動フィードバック生成**: 既存システムでフィードバックを生成
+5. **Slack通知**: 生成されたフィードバックを自動的にSlackに送信（`#dk_ca_ops`チャンネル）
 
 ## ディレクトリ構造
 
@@ -71,7 +72,7 @@ python scripts/link_transcript.py \
   transcript.txt
 ```
 
-### 4. フィードバック生成
+### 4. フィードバック生成とSlack通知
 
 ```bash
 python scripts/run_audio_feedback.py
@@ -81,6 +82,21 @@ python scripts/run_audio_feedback.py
 
 ```bash
 python scripts/run_audio_feedback.py --use-ai
+```
+
+**Slack通知について:**
+- フィードバック生成後、自動的にSlackに通知が送信されます
+- デフォルトチャンネル: `#dk_ca_ops`
+- 別のチャンネルに送信したい場合: `--slack-channel "#チャンネル名"` を指定
+- Slack通知を無効化したい場合: `--no-slack` オプションを指定
+
+**例:**
+```bash
+# 別チャンネルに送信
+python scripts/run_audio_feedback.py --slack-channel "#general"
+
+# Slack通知なしで実行
+python scripts/run_audio_feedback.py --no-slack
 ```
 
 ## 対応形式
@@ -148,6 +164,52 @@ cat data/audio/audio_metadata.json
 - 書き起こしファイルは `data/transcripts/pending/` にも自動的に配置されます
 - 既存の `scripts/run_feedback.py` も引き続き使用可能です
 - フィードバック形式は既存システムと同じです
+
+## Slack通知の設定
+
+### 環境変数の設定
+
+Slack通知を有効にするには、以下の環境変数を設定してください：
+
+```bash
+# 方法1: Slack Bot Tokenを使用（推奨、チャンネル指定可能）
+export SLACK_BOT_TOKEN="xoxb-your-slack-bot-token"
+export SLACK_DEFAULT_CHANNEL="#dk_ca_ops"  # オプション、デフォルト値が使用される
+
+# 方法2: Slack Webhook URLを使用（シンプル、チャンネル指定不可）
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+```
+
+`.env`ファイルに設定することもできます：
+
+```env
+SLACK_BOT_TOKEN=xoxb-your-slack-bot-token
+SLACK_DEFAULT_CHANNEL=#dk_ca_ops
+# または
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+```
+
+### Slack Bot Tokenの取得方法
+
+1. [Slack API](https://api.slack.com/apps)にアクセス
+2. 新しいアプリを作成
+3. 「OAuth & Permissions」で以下のスコープを追加:
+   - `chat:write`
+   - `chat:write.public`
+4. Bot Token（`xoxb-`で始まる）をコピー
+5. Botをワークスペースにインストール
+6. 送信先チャンネルにBotを追加（`#dk_ca_ops`など）
+
+### 通知内容
+
+フィードバック通知には以下の情報が含まれます：
+- 日付・CA情報
+- 総合評価とスコア
+- 良かった点
+- 改善点
+- 各項目評価（PSS/ADS）
+- 具体的な改善アドバイス
+- 次回に向けた目標
 
 ## 今後の拡張
 

@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.feedback.audio_feedback_engine import AudioFeedbackEngine
+from src.common.slack_notifier import SlackNotifier
 
 
 def main():
@@ -47,6 +48,17 @@ def main():
         type=Path,
         default=Path("data/exports/feedback"),
         help="出力ディレクトリ",
+    )
+    parser.add_argument(
+        "--slack-channel",
+        type=str,
+        default=None,
+        help="Slack通知先チャンネル（デフォルト: #dk_ca_ops）",
+    )
+    parser.add_argument(
+        "--no-slack",
+        action="store_true",
+        help="Slack通知を無効化",
     )
 
     args = parser.parse_args()
@@ -102,6 +114,16 @@ def main():
         args.output_dir.mkdir(parents=True, exist_ok=True)
         engine.feedback_engine.export_all_feedbacks(args.output_dir)
         print(f"\n▶ レポートを出力: {args.output_dir}")
+
+    # Slack通知
+    if feedbacks and not args.no_slack:
+        print("\n▶ Slack通知を送信中...")
+        slack_channel = args.slack_channel or "#dk_ca_ops"
+        notifier = SlackNotifier(default_channel=slack_channel)
+
+        for fb in feedbacks:
+            slack_message = fb.to_slack_message()
+            notifier.send_message(slack_message, channel=slack_channel)
 
 
 if __name__ == "__main__":
