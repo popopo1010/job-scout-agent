@@ -146,7 +146,10 @@ mypy src/
 | ドキュメント | 説明 |
 |-------------|------|
 | **[📊 プロジェクトオーバービュー（HTML）](docs/project-overview-complete.html)** | **視覚的なプロジェクト全体の可視化** ⭐ |
-| **[📋 事業戦略](strategy/README.md)** | **Mission、Vision、経営計画、市場分析など** ⭐ |
+| **[📋 事業戦略一覧](strategy/README.md)** | **3つの事業戦略の概要** ⭐ |
+| **[⚡ 電気工事士事業戦略](strategy/electrical-engineering/README.md)** | **電気工事士人材紹介事業の戦略** ⭐ |
+| **[🔧 電気施工管理事業戦略](strategy/electrical-construction-management/README.md)** | **電気工事施工管理人材紹介事業の戦略** ⭐ |
+| **[🏗️ 施工管理（一般）事業戦略](strategy/construction-management/README.md)** | **施工管理（一般）人材紹介事業の戦略** ⭐ |
 | [使用定義書（仕様定義書）](spec/00-specification.md) | システム実装の仕様（事業戦略は分離済み） |
 | [クイックスタート](spec/00-quickstart.md) | 実装開始のためのガイド |
 | [要件定義](spec/01-requirements.md) | 詳細な要件と仕様 |
